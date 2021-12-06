@@ -7,7 +7,6 @@ import atexit
 import numpy as np
 import pygetwindow as gw
 
-
 windowname = 'F1 2020 (DirectX 12)'
 play_game = False # If play_game is true, an F1 2020 time trial must be open, else the script can be run without F1 2020
 
