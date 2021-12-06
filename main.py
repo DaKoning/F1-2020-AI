@@ -8,6 +8,7 @@ import numpy as np
 import pygetwindow as gw
 
 windowname = 'F1 2020 (DirectX 12)'
+play_game = False # If play_game is true, an F1 2020 time trial must be open, else the script can be run without F1 2020
 
 def start():
     done = False
@@ -15,14 +16,14 @@ def start():
     Q_table = Qlearning.Q_table
     epsilon = Qlearning.epsilon
     progress_old = Qlearning.progress_old
-    frequency = 30
+    frequency = 5
     period = (1.0/frequency)
     
     episodes = 50000 # hoe vaak je de AI wilt laten runnen
     max_time = 100000 # in seconden
     timeToStop = time.time() + max_time
 
-    atexit.register(exit_handler, Q_table, epsilon)
+    delete_progress = Qlearning.delete_progress
 
     while not done:
         timeToEnd = time.time() + period
@@ -32,10 +33,18 @@ def start():
 
         data, progress = data_collection.get_variables() # haalt dat op uit data_collection
         actions, progress_old, Q_table, epsilon = Qlearning.run(data, progress, progress_old, Q_table, epsilon) # data voeden we aan Qlearning en krijgen een return
-        game_input.run(actions)
-
+        if play_game:
+            game_input.run(actions)
+            if not gw.getActiveWindow().title == windowname:
+                done = True
         
-        if current_episode >= episodes or timeToStop <= time.time() or not gw.getActiveWindow().title == windowname:
+        ### dit moet eleganter kunnen
+        # als het script een exit signaal krijgt, zorgt dit ervoor dat de Q_table en de epsilon worden opgeslagen
+        if not delete_progress:
+            atexit.unregister(exit_handler) # de exit_handler van de vorige loop wordt verwijderd
+            atexit.register(exit_handler, Q_table, epsilon)
+
+        if current_episode >= episodes or timeToStop <= time.time():
             done = True
             
         if timeToEnd < time.time():
@@ -70,8 +79,9 @@ def activate_window():
     win.activate()
 
 if __name__ == "__main__":
-    activate_window()
-    time.sleep(1)
-    game_input.special('B')
-    time.sleep(0.1)
+    if play_game:
+        activate_window() # focus on F1 2020 window
+        time.sleep(1)
+        game_input.special('B') # press B to exit out of pause menu
+        time.sleep(0.1)
     start()

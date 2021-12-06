@@ -13,7 +13,7 @@ if delete_progress or not exists("Qtable.npy"):
     Q_table = np.append(Q_table, [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], axis=0)
     np.save("Qtable", Q_table)
 else:
-    Q_table = np.load("Qtable.npy")
+    Q_table = np.load("Qtable.npy", allow_pickle=True)
 
 if delete_progress or not exists("epsilon"):
     epsilon = 1.0
@@ -29,7 +29,7 @@ progress_old = 0
 
 alpha = 0.81
 gamma = 0.96
-epsilon_decay = 0.999 # de erpsilon decay kunnen we tweeken voor een betere performance
+epsilon_decay = 0.999999999 # de erpsilon decay kunnen we tweeken voor een betere performance
 c = 0.001 #is de waarde die nog getweeked kan worden voor de reward functie
 
 def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
@@ -77,8 +77,7 @@ def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
     actions, epsilon = determine_action(Q_table,  resemblance_state, epsilon)
     throttle, brakes, steering = actions
     
-    # vals  
-
+    # als er een rij is met de states die al bestaan, kijk welke een hogere Q-waarde geeft en zet die in de Q-table 
     if 'same_row' in locals():
         if Q_new > Q_table[same_row][Q_width - 1]:
             np.delete(Q_table, same_row, 0)
@@ -88,9 +87,9 @@ def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
     else:
         Q_table = np.append(Q_table, [[speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, throttle, brakes, steering, Q_new]], axis=0)
 
-    # size = Q_table.size / Q_table[0].size - 1 #de size is lengte van de tabel, dus het aantal waarden gedeeld door de breedte - 1 (voor de titelrij)
     # print(tabulate(Q_table))
-    # print(f"Q-table size: {size}")
+    size = Q_table.size / Q_table[0].size - 1 #de size is lengte van de tabel, dus het aantal waarden gedeeld door de breedte - 1 (voor de titelrij)
+    print(f"Q-table size: {size}")
 
     return [throttle, brakes, steering], progress_old, Q_table, epsilon
     
@@ -111,6 +110,7 @@ def get_reward(data, progress, progress_old):
 
 def determine_action(Q_table, resemblance_state, epsilon):
     epsilon = determine_epsilon(epsilon)
+    print(epsilon)
     r = random.randint(1, 10000) / 10000
     if r <= epsilon:
         # exploration
