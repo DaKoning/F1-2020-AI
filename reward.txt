@@ -1,0 +1,7 @@
+reward afhankelijk van:
+    r = r_prog - punishment
+    r_prog = progress - progress_t-1
+    if ray_dis_0 == 0 or ray_dis_45 == 0 or ray_dis_90 == 0 or ray_dis_135 == 0 or ray_dis_180 == 0:
+        punishment = c * speed^2 #c is een hyperparameter die de grootte van de straf van het aanraken van de muur, bepaalt (zie GTSRL)
+    else:
+        punsihment = 0
