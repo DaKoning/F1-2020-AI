@@ -132,4 +132,3 @@ def determine_epsilon(epsilon):
 def run(data, progress, progress_old, Q_table, epsilon):
     actions, progress_old, Q_table, epsilon = Qlearning_algo(data, progress, progress_old, Q_table, epsilon)
     return actions, progress_old, Q_table, epsilon
-
