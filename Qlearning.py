@@ -29,7 +29,7 @@ progress_old = 0
 
 alpha = 0.81
 gamma = 0.96
-epsilon_decay = 0.999999999 # de erpsilon decay kunnen we tweeken voor een betere performance
+epsilon_decay = 0.9999999999999999 # de erpsilon decay kunnen we tweeken voor een betere performance
 c = 0.001 #is de waarde die nog getweeked kan worden voor de reward functie
 
 def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
