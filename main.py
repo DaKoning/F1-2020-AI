@@ -7,8 +7,6 @@ import atexit
 import numpy as np
 import pygetwindow as gw
 
-from timeit import default_timer as timer
-
 
 windowname = 'F1 2020 (DirectX 12)'
 play_game = False # If play_game is true, an F1 2020 time trial must be open, else the script can be run without F1 2020
@@ -35,10 +33,7 @@ def start():
         #print(f"Episode: {current_episode}")
 
         data, progress = data_collection.get_variables() # haalt dat op uit data_collection
-        start = timer()
         actions, progress_old, Q_table, epsilon = Qlearning.run(data, progress, progress_old, Q_table, epsilon) # data voeden we aan Qlearning en krijgen een return
-        # print("Time to run Qlearning: ", timer()-start)
-        # print("Episode: ", current_episode)
 
         if play_game:
             game_input.run(actions)
@@ -92,5 +87,4 @@ if __name__ == "__main__":
         time.sleep(0.5)
         game_input.special('A') # press B to exit out of pause menu
         time.sleep(5.75)
-    Qlearning.run([1,1,1,1,1,1], 1, 1, Qlearning.Q_table, 1.0) 
     start()

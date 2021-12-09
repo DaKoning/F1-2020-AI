@@ -8,7 +8,6 @@ from tabulate import tabulate
 delete_progress = True
 
 if delete_progress or not exists("Qtable.npy"):
-    #Q_table = np.array([['speed', 'angle', 'pos_x', 'pos_y', 'ray_dis_0', 'ray_dis_45', 'ray_dis_90', 'ray_dis_135', 'ray_dis_180', 'throttle', 'brakes', 'left_steering', 'right_steering', 'Q']])
     Q_table = np.array([['speed', 'ray_dis_0', 'ray_dis_45', 'ray_dis_90', 'ray_dis_135', 'ray_dis_180', 'throttle', 'brakes', 'steering', 'Q']], dtype=object)
     Q_table = np.append(Q_table, [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], axis=0)
     np.save("Qtable", Q_table)
@@ -90,9 +89,9 @@ def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
     else:
         Q_table = np.append(Q_table, [[speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, throttle, brakes, steering, Q_new]], axis=0)
 
-    # print(tabulate(Q_table))
+    print(tabulate(Q_table))
     size = Q_table.size / Q_table[0].size - 1 #de size is lengte van de tabel, dus het aantal waarden gedeeld door de breedte - 1 (voor de titelrij)
-    # print(f"Q-table size: {size}")
+    print(f"Q-table size: {size}")
 
     return [throttle, brakes, steering], progress_old, Q_table, epsilon
 
@@ -131,7 +130,6 @@ def determine_epsilon(epsilon):
     
     return epsilon
 
-# @jit(forceobj=True)
 def run(data, progress, progress_old, Q_table, epsilon):
     actions, progress_old, Q_table, epsilon = Qlearning_algo(data, progress, progress_old, Q_table, epsilon)
     return actions, progress_old, Q_table, epsilon
