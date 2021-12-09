@@ -32,6 +32,7 @@ gamma = 0.96
 epsilon_decay = 0.9999999999999999 # de erpsilon decay kunnen we tweeken voor een betere performance
 c = 0.001 #is de waarde die nog getweeked kan worden voor de reward functie
 
+# @jit(forceobj=True)
 def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
     """
     alpha is the learning rate, which determines how much newly acquired information overrides old information.
@@ -54,11 +55,13 @@ def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
         average_array = np.subtract(state, values) #hier neemt hij de huidige data en trekt hiervan de regel uit de Q-tabel die aan de beurt is af
         average = np.average(average_array) # bereken het gemiddelde van de verschillen tussen de arrays
         # sla het kleinste verschil en het rijnummer met het kleinste verschil op
+        same_row_exists = False
         if average <= lowest_average:
             lowest_average = average
             best_state_row = row
         if average == 0:
             same_row = row
+            same_row_exists = True
  
             
     resemblance_state = best_state_row # is de rij in de Q-table die het meest lijkt op de huidige state
@@ -78,7 +81,7 @@ def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
     throttle, brakes, steering = actions
     
     # als er een rij is met de states die al bestaan, kijk welke een hogere Q-waarde geeft en zet die in de Q-table 
-    if 'same_row' in locals():
+    if same_row_exists:
         if Q_new > Q_table[same_row][Q_width - 1]:
             np.delete(Q_table, same_row, 0)
             Q_table = np.append(Q_table, [[speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, throttle, brakes, steering, Q_new]], axis=0)
@@ -89,11 +92,10 @@ def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
 
     # print(tabulate(Q_table))
     size = Q_table.size / Q_table[0].size - 1 #de size is lengte van de tabel, dus het aantal waarden gedeeld door de breedte - 1 (voor de titelrij)
-    print(f"Q-table size: {size}")
+    # print(f"Q-table size: {size}")
 
     return [throttle, brakes, steering], progress_old, Q_table, epsilon
-    
-      
+
 def get_reward(data, progress, progress_old):
     speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180 = data
     
@@ -110,7 +112,7 @@ def get_reward(data, progress, progress_old):
 
 def determine_action(Q_table, resemblance_state, epsilon):
     epsilon = determine_epsilon(epsilon)
-    print(epsilon)
+    # print(epsilon)
     r = random.randint(1, 10000) / 10000
     if r <= epsilon:
         # exploration
@@ -129,6 +131,7 @@ def determine_epsilon(epsilon):
     
     return epsilon
 
+# @jit(forceobj=True)
 def run(data, progress, progress_old, Q_table, epsilon):
     actions, progress_old, Q_table, epsilon = Qlearning_algo(data, progress, progress_old, Q_table, epsilon)
     return actions, progress_old, Q_table, epsilon

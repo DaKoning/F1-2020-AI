@@ -23,3 +23,9 @@ def special(input):
         time.sleep(0.001)
         gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_B)
         gamepad.update()
+    elif input == 'A':
+        gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
+        gamepad.update()
+        time.sleep(0.001)
+        gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
+        gamepad.update()
