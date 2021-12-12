@@ -1,9 +1,10 @@
+from math import sqrt
 import numpy as np
 import random
 from os.path import exists
 from numpy.lib.function_base import average
 from tabulate import tabulate
-
+import data_collection
 
 delete_progress = True
 
@@ -30,9 +31,10 @@ alpha = 0.81
 gamma = 0.96
 epsilon_decay = 0.9999999999999999 # de erpsilon decay kunnen we tweeken voor een betere performance
 c = 0.001 #is de waarde die nog getweeked kan worden voor de reward functie
+invalid_punishment = 100 # de straf die de AI moet krijgen wanneer de lap invalid is geworden (door b.v. het aanraken van het gras)
 
 # @jit(forceobj=True)
-def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
+def Qlearning_algo(Q_table, epsilon):
     """
     alpha is the learning rate, which determines how much newly acquired information overrides old information.
     gamma is the discount factor, the weight of future rewards, which determines the importance of the future rewards. The discount factor may be approximated by an artifical neural network, to optimize the ai.
@@ -40,10 +42,13 @@ def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
     Q_0 is the initial condition, which can be set by the first reward (reset of initial conditions). 
     """
     
-    state = data
-    speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180 = state
+    data = data_collection.data
+    speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, totalDistance, totalDistance_old, currentLapInvalid = data
+    state = speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180
 
-    reward, progress_old = get_reward(data, progress, progress_old) # reward bepalen
+
+    reward = get_reward(data) # reward bepalen
+    # print(reward)
     Q_width = int(Q_table[0].size) # de breedte van de Q-table (x-as)
     Q_length = int(Q_table.size / Q_width) # de lengte van de Q-table (y-as)
     lowest_average = np.Infinity # we zetten eerst het laagste gemiddelde voor het verschil tussen de state en een state uit de tabel naar oneindig, zodat de eerste sowieso kleiner is
@@ -89,25 +94,29 @@ def Qlearning_algo(data, progress, progress_old, Q_table, epsilon):
     else:
         Q_table = np.append(Q_table, [[speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, throttle, brakes, steering, Q_new]], axis=0)
 
-    print(tabulate(Q_table))
+    # print(tabulate(Q_table))
     size = Q_table.size / Q_table[0].size - 1 #de size is lengte van de tabel, dus het aantal waarden gedeeld door de breedte - 1 (voor de titelrij)
-    print(f"Q-table size: {size}")
+    # print(f"Q-table size: {size}")
 
-    return [throttle, brakes, steering], progress_old, Q_table, epsilon
+    return [throttle, brakes, steering], Q_table, epsilon
 
-def get_reward(data, progress, progress_old):
-    speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180 = data
+def get_reward(data):
+    speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, totalDistance, totalDistance_old, currentLapInvalid = data
     
     # als één van de rays 0 is, dan raakt de auto de muur aan, dus wordt de reward minder
     if 0 in {ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180}:
-        punishment = c * speed^2 #c is een hyperparameter die de grootte van de straf van het aanraken van de muur, bepaalt (zie GTSRL)
+        punishment = c * sqrt(speed) #c is een hyperparameter die de grootte van de straf van het aanraken van de muur, bepaalt (zie GTSRL)
+    elif currentLapInvalid:
+        punishment = invalid_punishment
     else:
         punishment = 0
-    reward_prog = progress - progress_old # de progress-reward is het verschil tussen de progress op dit moment en op het vorige moment, ofwel de afstand langs de center line die de auto heeft afgelegd
-    reward = reward_prog - punishment # de uiteindelijke reward is: de reward van de afstand die is afgelegd - de straf die de AI gekregen heeft voor raken van een grens
-    progress_old = progress # na het berekenen van de reward, wordt de progress de old progress, zodat deze bij de volgende tijdsstap gebruikt kan worden om het volgende verschil te berekenen
+    progress = totalDistance - totalDistance_old # de progress-reward is het verschil tussen de progress op dit moment en op het vorige moment, ofwel de afstand langs de center line die de auto heeft afgelegd
+    reward = progress - punishment # de uiteindelijke reward is: de reward van de afstand die is afgelegd - de straf die de AI gekregen heeft voor raken van een grens
+   
+    # Set totalDistance_old to the current totalDistance, zodat deze bij de volgende tijdsstap gebruikt kan worden om het volgende verschil te berekenen
+    data_collection.data[7] = totalDistance
 
-    return reward, progress_old
+    return reward
 
 def determine_action(Q_table, resemblance_state, epsilon):
     epsilon = determine_epsilon(epsilon)
@@ -130,6 +139,6 @@ def determine_epsilon(epsilon):
     
     return epsilon
 
-def run(data, progress, progress_old, Q_table, epsilon):
-    actions, progress_old, Q_table, epsilon = Qlearning_algo(data, progress, progress_old, Q_table, epsilon)
-    return actions, progress_old, Q_table, epsilon
+def run(Q_table, epsilon):
+    actions, Q_table, epsilon = Qlearning_algo(Q_table, epsilon)
+    return actions, Q_table, epsilon
