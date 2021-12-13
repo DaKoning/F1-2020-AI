@@ -7,7 +7,6 @@ import time
 import atexit
 import numpy as np
 import pygetwindow as gw
-from threading import Thread
 
 windowname = 'F1 2020 (DirectX 12)'
 play_game = True # If play_game is true, an F1 2020 time trial must be open, else the script can be run without F1 2020
@@ -94,7 +93,7 @@ def activate_window():
     win.activate()
 
 
-thread_1 = Thread(target=data_collection.run)
+thread_1 = threading.Thread(target=data_collection.run)
 
 if __name__ == "__main__":
     if play_game:
