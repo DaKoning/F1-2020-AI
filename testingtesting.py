@@ -1,7 +1,14 @@
-s = 'hello world'
-while True:
-    if len(s) > 5:
-        s = s[1:]
-    else:
-        break
-print(s)
+print('running script')
+
+def func():
+    print("process 2")
+
+
+if __name__ == '__main__':
+    import Qlearning
+    import multiprocessing
+
+    p2 = multiprocessing.Process(target=func)
+    p2.start()
+
+    p2.join()

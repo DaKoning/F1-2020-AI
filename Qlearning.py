@@ -6,7 +6,7 @@ from numpy.lib.function_base import average
 from tabulate import tabulate
 import data_collection
 
-delete_progress = True
+delete_progress = False
 
 if delete_progress or not exists("Qtable.npy"):
     Q_table = np.array([['speed', 'ray_dis_0', 'ray_dis_45', 'ray_dis_90', 'ray_dis_135', 'ray_dis_180', 'throttle', 'brakes', 'steering', 'Q']], dtype=object)
@@ -16,11 +16,13 @@ else:
     Q_table = np.load("Qtable.npy", allow_pickle=True)
 
 if delete_progress or not exists("epsilon"):
+    print("Q-learning: Epsilon does not yet exist")
     epsilon = 1.0
     file = open("epsilon", "w")
     file.write(str(epsilon))
     file.close
 else:
+    print("Q-learing: Reading epsilon")
     file = open("epsilon", "r")
     epsilon = float(file.read())
 

@@ -1,36 +1,3 @@
-# import random
-
-
-# speed = 0.0 
-# progress = 0.0
-# # angle = 0.0
-# # pos_x = 0.0
-# # pos_y = 0.0
-# ray_dis_0 = 0.0
-# ray_dis_45 = 0.0
-# ray_dis_90 = 0.0
-# ray_dis_135 = 0.0
-# ray_dis_180 = 0.0
-# is_dead = False
-
-# def get_variables():
-#     speed = random.randint(1,100) # snelheid van de auto (speed in m/s)
-#     progress = random.randint(1,100) # moet de afstand die de auto tot dan toe heeft afeglegd komen
-#     # angle = random.randint(1,100)
-#     # pos_x = random.randint(1,100)
-#     # pos_y = random.randint(1,100)
-#     ray_dis_0 = random.randint(1,100)
-#     ray_dis_45 = random.randint(1,100)
-#     ray_dis_90 = random.randint(1,100)
-#     ray_dis_135 = random.randint(1,100)
-#     ray_dis_180 = random.randint(1,100)
-
-#     # return [speed, angle, pos_x, pos_y, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180]
-#     return [speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180], progress
-
-
-##################################################################################################################
-
 """
 we hebben nodig:
 -speed
@@ -40,27 +7,33 @@ we hebben nodig:
 
 
 """
+
 import random
 import f1_2020_telemetry
 from f1_2020_telemetry.packets import PacketCarTelemetryData_V1, PacketHeader, unpack_udp_packet
 import socket
-from time import sleep
 from math import pi
 import numpy as np
-
-
-#haalt alle telementry data uit de game in packets
-udp_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-udp_socket.bind(("", 20777))
 
 # data: speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, totalDistance, totalDistance_old, currentLapInvalid
 data = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=object)
 
+def run_data_collection():
+    #haalt alle telementry data uit de game in packets
+    print("Data Collection: Binding to socket 20777")
+    udp_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    udp_socket.bind(("", 20777))
+    udp_timeout = 1
+    udp_socket.settimeout(udp_timeout)
+    print("Data Collection: Bound to socket 20777")
 
-def run():
     while True:
-        udp_packet = udp_socket.recv(2048)
-        packet = unpack_udp_packet(udp_packet)
+        try:
+            udp_packet = udp_socket.recv(2048)
+            packet = unpack_udp_packet(udp_packet)
+        except socket.timeout:
+            print(f"Data Collection: Not receiving any udp packet after {udp_timeout} second(s)")
+            break
 
         #geen idee wat het doet maar het haalt de parameters die we willen uit de packets
         if isinstance(packet, f1_2020_telemetry.packets.PacketLapData_V1):
@@ -96,8 +69,6 @@ def run():
         data[4] = ray_dis_135
         data[5] = ray_dis_180
 
-
-    print("Data collection ended")
         
 
 def ray_dis_0():
