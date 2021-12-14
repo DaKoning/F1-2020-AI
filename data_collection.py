@@ -12,27 +12,36 @@ import random
 import f1_2020_telemetry
 from f1_2020_telemetry.packets import PacketCarTelemetryData_V1, PacketHeader, unpack_udp_packet
 import socket
+import math
 from math import pi
 import numpy as np
+import os
 
 # data: speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, totalDistance, totalDistance_old, currentLapInvalid
-data = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=object)
+startDistance = -1004.96484375 # De oude distance moet beginnen op de startDistance, zodat de rewardbepaling bij de eerste episode klopt
+data = np.array([0, 0, 0, 0, 0, 0, 0, startDistance, 0], dtype=object)
+TRACK = np.genfromtxt(os.path.join('assets','Track2.csv'), dtype=float,encoding=None, delimiter=",")
+RENDERDISTANCE = int(800)
+
 
 def run_data_collection():
     #haalt alle telementry data uit de game in packets
     print("Data Collection: Binding to socket 20777")
     udp_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     udp_socket.bind(("", 20777))
-    udp_timeout = 1
+    udp_timeout = 20
     udp_socket.settimeout(udp_timeout)
     print("Data Collection: Bound to socket 20777")
+
+    nX = 0
+    nZ = -1
 
     while True:
         try:
             udp_packet = udp_socket.recv(2048)
             packet = unpack_udp_packet(udp_packet)
         except socket.timeout:
-            print(f"Data Collection: Not receiving any udp packet after {udp_timeout} second(s)")
+            print(f"Data Collection: Not receiving any UDP packet after {udp_timeout} second(s)")
             break
 
         #geen idee wat het doet maar het haalt de parameters die we willen uit de packets
@@ -45,43 +54,122 @@ def run_data_collection():
             data[8] = currentLapInvalid
 
         elif isinstance(packet, f1_2020_telemetry.packets.PacketMotionData_V1):
-            angle = packet.carMotionData[0].yaw
-            angle_degrees = angle * (180 / pi)
-            car_angle_0 = angle - (0.5 * pi)
-            car_angle_45 = angle - (0.25 * pi)
-            car_angle_90 = angle
-            car_angle_135 = angle + (0.25 * pi)
-            car_angle_180 = angle + (0.5 * pi)
+            angle = 1 + packet.carMotionData[0].yaw / pi
+
+            # angle_degrees = angle * (180 / pi)
+            # car_angle_0 = angle - (0.5 * pi)
+            # car_angle_45 = angle - (0.25 * pi)
+            # car_angle_90 = angle
+            # car_angle_135 = angle + (0.25 * pi)
+            # car_angle_180 = angle + (0.5 * pi)
+
+
+#####################################################################################################################################################################
+#marijns angle berkening, later de angle uit de packet omrekenen naar data die klopt met de angle van marijn
+
             
+                        
+            VelX = packet.carMotionData[0].worldVelocityX #VelX in het hele programma veranderen naar worldVelocitX
+            VelZ = packet.carMotionData[0].worldVelocityZ #VelX in het hele programma veranderen naar worldVelocitZ
+            PosX = ((packet.carMotionData[0].worldPositionX) + 700) * 5 #PosX in het hele programma veranderen naar worldPositionX
+            PosZ = ((packet.carMotionData[0].worldPositionZ) + 1200) * 5 #PosZ in het hele programma veranderen naar worldVelocitZ
+            # print(f"VelX: {VelX}")
+            # print(f"VelZ: {VelZ}")
+            # print(f"PosX: {PosX}")
+            # print(f"PosZ: {PosZ}")
+            Pos = np.array([PosX,PosZ])
+            
+            if VelX > 0:
+                Angle = float(math.fabs(math.acos((VelX*nX+VelZ*nZ)/(math.sqrt(VelX**2+VelZ**2)*math.sqrt(nX**2+nZ**2)))/math.pi-1)+1)
+            else:
+                Angle = float(math.acos((VelX*nX+VelZ*nZ)/(math.sqrt(VelX**2+VelZ**2)*math.sqrt(nX**2+nZ**2)))/math.pi)
+
+            # print(f"angle:  {angle}")
+            # print(f"Angle:  {Angle}")
+            # print(f"Verschil:   {round(Angle - angle, 1)}")
+            
+            anglelist = calculateangle(TRACK, Pos, angle)
+            ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront = raycast(Pos, anglelist, angle)
+
+            data[1] = ray_front
+            data[2] = ray_right
+            data[3] = ray_left
+            data[4] = ray_rightfront
+            data[5] = ray_leftfront
+
+            print(f"ray_front       :  {ray_front}")
+            print(f"ray_right       :  {ray_right}")
+            print(f"ray_left        :  {ray_left}")
+            print(f"ray_rightfront  :  {ray_rightfront}")
+            print(f"ray_leftfront   :  {ray_leftfront}")
+
+#######################################################################################################################################################################            
+
         elif isinstance(packet, f1_2020_telemetry.packets.PacketCarTelemetryData_V1):
             speed = packet.carTelemetryData[0].speed
             data[0] = speed
 
-        ray_dis_0 = random.randint(1,100)
-        ray_dis_45 = random.randint(1,100)
-        ray_dis_90 = random.randint(1,100)
-        ray_dis_135 = random.randint(1,100)
-        ray_dis_180 = random.randint(1,100)
 
-        data[1] = ray_dis_0
-        data[2] = ray_dis_45
-        data[3] = ray_dis_90
-        data[4] = ray_dis_135
-        data[5] = ray_dis_180
+def calculateangle(matrix,point,worldangle):
+    #worldangle unitvector
+    pointV = np.array([(np.cos(-worldangle*np.pi),np.sin(-worldangle*np.pi))])
+    #doing all edits to matrixV variable instead of matrix
+    matrixV = np.copy(matrix)
+    matrixV[:,0] -= point[0]
+    matrixV[:,1] -= point[1]
+    #calculating corrections:
+    norm_points = np.copy(matrixV)
+    #   calculate correction angle
+    correctionangle = worldangle*np.pi
+    #   calculate normalised angle with rotation matrix
+    norm_points2 = np.array([(np.cos(correctionangle) * norm_points[:,0] + -np.sin(correctionangle) * norm_points[:,1]),(np.sin(correctionangle) * norm_points[:,0] + np.cos(correctionangle) * norm_points[:,1])])
+    norm_points2 = np.transpose(norm_points2)
+    #   calulate which points need 1pi added to angle (correction)
+    correction = norm_points2[:,1] < 0
+    #angle calculation:
+    dotproduct = matrixV[:,0] * pointV[0,0] + matrixV[:,1] * pointV[0,1]
+    pointlength = np.sqrt(pointV[0,0]*pointV[0,0] + pointV[0,1]*pointV[0,1])
+    matrixlength = np.sqrt(matrixV[:,0]*matrixV[:,0] + matrixV[:,1]*matrixV[:,1])
+    anglelist = np.arccos(dotproduct/(pointlength*matrixlength))/np.pi
+    #adding correction
+    anglelist[correction] = np.absolute(anglelist[correction]-1)+1
+    # print(f"Anglelist: {anglelist}")
+    return anglelist
+    
+def raycast(Pos, anglelist, Angle):
+    front = distance(TRACK,anglelist,Pos,-Angle,1.5,0.1/180)
+    right = distance(TRACK,anglelist,Pos,-Angle,0,10/180)
+    left = distance(TRACK,anglelist,Pos,-Angle,1.0,10/180)
+    rightfront = distance(TRACK,anglelist,Pos,-Angle,1.75,10/180)
+    leftfront = distance(TRACK,anglelist,Pos,-Angle,1.25,10/180)
+    # print("front:",round(front[0],2),"right:",round(right[0],2),"left:",round(left[0],2),"rightfront:",round(rightfront[0],2),"leftfront:",round(leftfront[0],2))
 
-        
+    return front, right, left, rightfront, leftfront
+    
 
-def ray_dis_0():
-    pass
+def distance(matrix, anglematrix, point, worldangle, rayangle, tolerance):
+    #Calculating top and bottom bounds
+    angleV = anglematrix
+    matrixV = matrix
+    top = rayangle + tolerance
+    bottom = rayangle - tolerance
+    #checking if tolerance calculating <0 or >2pi and changing it accordingly
+    if top > 2:
+        top -= 2
+        angleMASK = (angleV > bottom)&(angleV < 2)|(angleV > 0)&(angleV < top)
+    elif bottom < 0:
+        bottom += 2
+        angleMASK = (angleV > bottom)&(angleV < 2)|(angleV > 0)&(angleV < top)
+    else:
+        angleMASK = (angleV > bottom) & (angleV < top)
+    marginlist = matrix[angleMASK]
+    if marginlist.size == 0:
+        amin = RENDERDISTANCE
+        intersectpoint = np.array([[(point[0]+RENDERDISTANCE*math.cos(worldangle*math.pi+(rayangle*math.pi))),(point[1]+RENDERDISTANCE*math.sin(worldangle*math.pi+(rayangle*math.pi)))]])
+        anglepoint = np.array([rayangle])
+        print("using no angle condition")
+    else:
+        distance = np.sqrt((marginlist[:,0]-point[0])*(marginlist[:,0]-point[0])+(marginlist[:,1]-point[1])*(marginlist[:,1]-point[1]))
+        amin = np.amin(distance)
 
-def ray_dis_45():
-    pass
-
-def ray_dis_90():
-    pass
-
-def ray_dis_135():
-    pass
-
-def ray_dis_180():
-    pass
+    return amin #afstand van de ray

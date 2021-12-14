@@ -10,14 +10,18 @@ DONE determine termination aan de hand van tijd of botsing
 
 game input maken
 frequentie van programma verhogen (betere processor kopen)(oh nee wacht we zijn skere)
-    multithreading
-    gpu acceleration
-    meerdere computers koppelen
-    epsilon opslaan in memory in plaats van returnen via main.py
+    multiprocessing
+    gpu acceleration (gaat nie lukken man kogel gay, maar echt wtf)
+    meerdere computers koppelen (wtf denken we)
+    DONE epsilon opslaan in memory in plaats van returnen via main.py
     q_table, progress_old tijdelijk opslaan als public variable (dan wordt ie gewoon opgeslagen in een allocated ram space)
 Deep Q network die betere beslissingen kan maken
 
-verbeterpunten:
-    min and max throttle, break, steering
 
 speed in m/s, zodat punishment duidelijker kan worden bepaald
+
+TO DO:
+    multiprocessing fixen
+    punishment alleen op basis van invalid
+    (misschien) pygame in main
+    

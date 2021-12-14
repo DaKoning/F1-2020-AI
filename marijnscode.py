@@ -35,7 +35,7 @@ nZ = -1
 playerdistance = 0
 Approxoffset = 0
 
-WIDTH, HEIGHT = 629,1080
+WIDTH, HEIGHT = 629,1000
 FPS = 10000
 SCALE = 1080/11465
 WIN = pygame.display.set_mode((WIDTH,HEIGHT))
