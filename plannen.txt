@@ -24,4 +24,4 @@ TO DO:
     multiprocessing fixen
     punishment alleen op basis van invalid
     (misschien) pygame in main
-    
+    lowest_average kloppend maken (negatief is kleiner)

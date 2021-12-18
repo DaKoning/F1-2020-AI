@@ -117,3 +117,4 @@ if __name__ == "__main__":
     print("Main: Waiting for Data Collection to end")
     process_1.join()
     print("Main: Data Collection has ended")
+    

@@ -4,7 +4,7 @@ import random
 from os.path import exists
 from numpy.lib.function_base import average
 from tabulate import tabulate
-import data_collection
+from multiprocessing import Pool
 
 delete_progress = False
 
@@ -51,10 +51,10 @@ def Qlearning_algo(data, Q_table, epsilon):
     Q_width = int(Q_table[0].size) # de breedte van de Q-table (x-as)
     Q_length = int(Q_table.size / Q_width) # de lengte van de Q-table (y-as)
     lowest_average = np.Infinity # we zetten eerst het laagste gemiddelde voor het verschil tussen de state en een state uit de tabel naar oneindig, zodat de eerste sowieso kleiner is
-    
+
     # vergelijkt de current state met alle states in de Q-table en berekent de state in de Q-table die het meest op de current state lijkt
     for row in range(Q_length)[1:]:
-        values = Q_table[row][:6] #hier neemt hij alle data--> speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180 van de regel in de Q-tabel die aan de beurt is
+        values = Q_table[row][:6] #hier neemt hij alle data--> speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, van de regel in de Q-tabel die aan de beurt is
         average_array = np.subtract(state, values) #hier neemt hij de huidige data en trekt hiervan de regel uit de Q-tabel die aan de beurt is af
         average = np.average(average_array) # bereken het gemiddelde van de verschillen tussen de arrays
         # sla het kleinste verschil en het rijnummer met het kleinste verschil op
@@ -100,9 +100,7 @@ def Qlearning_algo(data, Q_table, epsilon):
     return [throttle, brakes, steering], Q_table, epsilon
 
 def get_reward(data):
-    totalDistance = data[6]
-    totalDistance_old = data[7]
-    currentLapInvalid = data[8]
+    totalDistance, totalDistance_old, currentLapInvalid = data[6:]
     
     if currentLapInvalid:
         punishment = invalid_punishment
