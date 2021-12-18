@@ -1,13 +1,3 @@
-"""
-we hebben nodig:
--speed
--progress (lapDistance, totalDistance)
--rays (angle)
-
-
-
-"""
-
 import random
 import f1_2020_telemetry
 from f1_2020_telemetry.packets import PacketCarTelemetryData_V1, PacketHeader, unpack_udp_packet
@@ -17,24 +7,21 @@ from math import pi
 import numpy as np
 import os
 
-# data: speed, ray_dis_0, ray_dis_45, ray_dis_90, ray_dis_135, ray_dis_180, totalDistance, totalDistance_old, currentLapInvalid
+# data: speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid
 startDistance = -1004.96484375 # De oude distance moet beginnen op de startDistance, zodat de rewardbepaling bij de eerste episode klopt
 data = np.array([0, 0, 0, 0, 0, 0, 0, startDistance, 0], dtype=object)
 TRACK = np.genfromtxt(os.path.join('assets','Track2.csv'), dtype=float,encoding=None, delimiter=",")
 RENDERDISTANCE = int(800)
 
 
-def run_data_collection():
+def run_data_collection(data):
     #haalt alle telementry data uit de game in packets
     print("Data Collection: Binding to socket 20777")
     udp_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     udp_socket.bind(("", 20777))
-    udp_timeout = 20
+    udp_timeout = 5
     udp_socket.settimeout(udp_timeout)
     print("Data Collection: Bound to socket 20777")
-
-    nX = 0
-    nZ = -1
 
     while True:
         try:
@@ -47,7 +34,6 @@ def run_data_collection():
         #geen idee wat het doet maar het haalt de parameters die we willen uit de packets
         if isinstance(packet, f1_2020_telemetry.packets.PacketLapData_V1):
             # currentLapTime = packet.lapData[0].currentLapTime
-            # lapDistance = packet.lapData[0].lapDistance
             totalDistance = packet.lapData[0].totalDistance
             data[6] = totalDistance
             currentLapInvalid = packet.lapData[0].currentLapInvalid
@@ -55,38 +41,14 @@ def run_data_collection():
 
         elif isinstance(packet, f1_2020_telemetry.packets.PacketMotionData_V1):
             angle = 1 + packet.carMotionData[0].yaw / pi
-
-            # angle_degrees = angle * (180 / pi)
-            # car_angle_0 = angle - (0.5 * pi)
-            # car_angle_45 = angle - (0.25 * pi)
-            # car_angle_90 = angle
-            # car_angle_135 = angle + (0.25 * pi)
-            # car_angle_180 = angle + (0.5 * pi)
-
-
-#####################################################################################################################################################################
-#marijns angle berkening, later de angle uit de packet omrekenen naar data die klopt met de angle van marijn
-
-            
-                        
-            VelX = packet.carMotionData[0].worldVelocityX #VelX in het hele programma veranderen naar worldVelocitX
-            VelZ = packet.carMotionData[0].worldVelocityZ #VelX in het hele programma veranderen naar worldVelocitZ
-            PosX = ((packet.carMotionData[0].worldPositionX) + 700) * 5 #PosX in het hele programma veranderen naar worldPositionX
-            PosZ = ((packet.carMotionData[0].worldPositionZ) + 1200) * 5 #PosZ in het hele programma veranderen naar worldVelocitZ
-            # print(f"VelX: {VelX}")
-            # print(f"VelZ: {VelZ}")
-            # print(f"PosX: {PosX}")
-            # print(f"PosZ: {PosZ}")
+           
+            PosX = ((packet.carMotionData[0].worldPositionX) + 700) * 5 
+            PosZ = ((packet.carMotionData[0].worldPositionZ) + 1200) * 5 
             Pos = np.array([PosX,PosZ])
             
-            if VelX > 0:
-                Angle = float(math.fabs(math.acos((VelX*nX+VelZ*nZ)/(math.sqrt(VelX**2+VelZ**2)*math.sqrt(nX**2+nZ**2)))/math.pi-1)+1)
-            else:
-                Angle = float(math.acos((VelX*nX+VelZ*nZ)/(math.sqrt(VelX**2+VelZ**2)*math.sqrt(nX**2+nZ**2)))/math.pi)
-
-            # print(f"angle:  {angle}")
-            # print(f"Angle:  {Angle}")
-            # print(f"Verschil:   {round(Angle - angle, 1)}")
+            # print(f"Data Collection: PosX: {PosX}")
+            # print(f"Data Collection: PosZ: {PosZ}")
+            # print(f"Data Collection: angle:  {angle}")
             
             anglelist = calculateangle(TRACK, Pos, angle)
             ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront = raycast(Pos, anglelist, angle)
@@ -97,17 +59,17 @@ def run_data_collection():
             data[4] = ray_rightfront
             data[5] = ray_leftfront
 
-            print(f"ray_front       :  {ray_front}")
-            print(f"ray_right       :  {ray_right}")
-            print(f"ray_left        :  {ray_left}")
-            print(f"ray_rightfront  :  {ray_rightfront}")
-            print(f"ray_leftfront   :  {ray_leftfront}")
-
-#######################################################################################################################################################################            
+            # print(f"Data Collection: ray_front       :  {ray_front}")
+            # print(f"Data Collection: ray_right       :  {ray_right}")
+            # print(f"Data Collection: ray_left        :  {ray_left}")
+            # print(f"Data Collection: ray_rightfront  :  {ray_rightfront}")
+            # print(f"Data Collection: ray_leftfront   :  {ray_leftfront}")
+  
 
         elif isinstance(packet, f1_2020_telemetry.packets.PacketCarTelemetryData_V1):
             speed = packet.carTelemetryData[0].speed
             data[0] = speed
+            # print(f"Data Collection: Speed: {data[0]}")
 
 
 def calculateangle(matrix,point,worldangle):
@@ -167,7 +129,7 @@ def distance(matrix, anglematrix, point, worldangle, rayangle, tolerance):
         amin = RENDERDISTANCE
         intersectpoint = np.array([[(point[0]+RENDERDISTANCE*math.cos(worldangle*math.pi+(rayangle*math.pi))),(point[1]+RENDERDISTANCE*math.sin(worldangle*math.pi+(rayangle*math.pi)))]])
         anglepoint = np.array([rayangle])
-        print("using no angle condition")
+        # print("Data Collection: Using no angle condition")
     else:
         distance = np.sqrt((marginlist[:,0]-point[0])*(marginlist[:,0]-point[0])+(marginlist[:,1]-point[1])*(marginlist[:,1]-point[1]))
         amin = np.amin(distance)

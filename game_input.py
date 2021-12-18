@@ -15,23 +15,35 @@ def run(actions):
 
     gamepad.update()
 
-
+input_time = 0.01
 def special(input):
     if input == 'B':
         gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_B)
         gamepad.update()
-        time.sleep(0.001)
+        time.sleep(input_time)
         gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_B)
         gamepad.update()
     elif input == 'A':
         gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
         gamepad.update()
-        time.sleep(0.001)
+        time.sleep(input_time)
         gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
         gamepad.update()
     elif input == 'back':
         gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK)
         gamepad.update()
-        time.sleep(0.001)
+        time.sleep(input_time)
         gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK)
+        gamepad.update()
+    elif input == 'start':
+        gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_START)
+        gamepad.update()
+        time.sleep(input_time)
+        gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_START)
+        gamepad.update()
+    elif input == 'left_thumb':
+        gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB)
+        gamepad.update()
+        time.sleep(input_time)
+        gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB)
         gamepad.update()
