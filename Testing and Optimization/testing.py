@@ -1,10 +1,12 @@
-from multiprocessing import pool, Pool
+import multiprocessing
 import numpy as np
 import time
 import concurrent.futures
 import threading
 from joblib import Parallel, delayed
 import asyncio
+from ray._private.parameter import RayParams
+from ray.util.multiprocessing import Pool
 
 def background(f):
     def wrapped(*args, **kwargs):
@@ -83,14 +85,14 @@ if __name__ == '__main__':
     print(len(averages), "rows")
 
     time1 = time.time()
-    with pool.ThreadPool() as threadpool:
+    with multiprocessing.pool.ThreadPool() as threadpool:
         averages = threadpool.map(calculate_best_row_once, Q_table)
     time2 = time.time()
     print(f"With ThreadPool: {time2 - time1} seconds")
     print(len(averages), "rows")
 
     time1 = time.time()
-    with pool.ThreadPool() as threadpool:
+    with multiprocessing.pool.ThreadPool() as threadpool:
         averages = threadpool.map(calculate_best_row_once, Q_table, 5000)
     time2 = time.time()
     print(f"With ThreadPool and custom chunksize: {time2 - time1} seconds")
@@ -98,7 +100,7 @@ if __name__ == '__main__':
 
     time1 = time.time()
     averages = []
-    with pool.ThreadPool() as threadpool:
+    with multiprocessing.pool.ThreadPool() as threadpool:
         for i in threadpool.imap_unordered(calculate_best_row_once, Q_table):
             averages.append(i)
     time2 = time.time()
@@ -107,12 +109,19 @@ if __name__ == '__main__':
 
     time1 = time.time()
     averages = []
-    with pool.ThreadPool() as threadpool:
+    with multiprocessing.pool.ThreadPool() as threadpool:
         for i in threadpool.imap_unordered(calculate_best_row_once, Q_table, 1000):
             averages.append(i)
     time2 = time.time()
     print(f"With ThreadPool and imap and custom chunksize: {time2 - time1} seconds")
     print(len(averages), "rows")
+
+    # time1 = time.time()
+    # with Pool() as raypool:
+    #     averages = raypool.map(calculate_best_row_once, Q_table)
+    # time2 = time.time()
+    # print(f"With RayPool: {time2 - time1} seconds")
+    # print(len(averages), "rows")
 
     time1 = time.time()
     averages = Parallel(n_jobs=2, batch_size=6072)(delayed(calculate_best_row_once)(Q_table_row) for Q_table_row in Q_table)
@@ -129,43 +138,43 @@ if __name__ == '__main__':
     print(f"With asyncio: {time2 - time1} seconds")
     print(len(averages), "rows")
 
-    # time1 = time.time()
-    # with Pool() as processpool:
-    #     averages = processpool.map(calculate_best_row_once, Q_table)
-    # time2 = time.time()
-    # print(f"With Pool: {time2 - time1} seconds")
-    # print(len(averages), "rows")
+    time1 = time.time()
+    with multiprocessing.Pool() as processpool:
+        averages = processpool.map(calculate_best_row_once, Q_table)
+    time2 = time.time()
+    print(f"With Pool: {time2 - time1} seconds")
+    print(len(averages), "rows")
 
-    # time1 = time.time()
-    # with concurrent.futures.ThreadPoolExecutor() as executor:
-    #     averages = [executor.submit(calculate_best_row_once, Q_table_row) for Q_table_row in Q_table]
-    #     concurrent.futures.wait(averages)
-    # time2 = time.time()
-    # print(f"With ThreadPoolExecutor: {time2 - time1} seconds")
-    # print(len(averages), "rows")
+    time1 = time.time()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        averages = [executor.submit(calculate_best_row_once, Q_table_row) for Q_table_row in Q_table]
+        concurrent.futures.wait(averages)
+    time2 = time.time()
+    print(f"With ThreadPoolExecutor: {time2 - time1} seconds")
+    print(len(averages), "rows")
 
-    # time1 = time.time()
-    # with concurrent.futures.ProcessPoolExecutor() as executor:
-    #     averages = [executor.submit(calculate_best_row_once, Q_table_row) for Q_table_row in Q_table]
-    #     concurrent.futures.wait(averages)
-    # time2 = time.time()
-    # print(f"With ProcessPoolExecutor: {time2 - time1} seconds")
-    # print(len(averages), "rows")
+    time1 = time.time()
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        averages = [executor.submit(calculate_best_row_once, Q_table_row) for Q_table_row in Q_table]
+        concurrent.futures.wait(averages)
+    time2 = time.time()
+    print(f"With ProcessPoolExecutor: {time2 - time1} seconds")
+    print(len(averages), "rows")
 
-    # time1 = time.time()
-    # threads = []
-    # Q_width = int(Q_table[0].size) # de breedte van de Q-table (x-as)
-    # Q_length = int(Q_table.size / Q_width)
-    # averages = [None] * Q_length
-    # for i in range(Q_length):
-    #     thread = threading.Thread(target=calculate_best_row_once_append, args=(Q_table[i], averages, i))
-    #     threads.append(thread)
-    # for thread in threads:
-    #     thread.start()
-    # for thread in threads:
-    #     thread.join()
-    # time2 = time.time()
-    # print(f"Manual multithreading: {time2 - time1} seconds")
-    # print(len(averages), "rows")
+    time1 = time.time()
+    threads = []
+    Q_width = int(Q_table[0].size) # de breedte van de Q-table (x-as)
+    Q_length = int(Q_table.size / Q_width)
+    averages = [None] * Q_length
+    for i in range(Q_length):
+        thread = threading.Thread(target=calculate_best_row_once_append, args=(Q_table[i], averages, i))
+        threads.append(thread)
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    time2 = time.time()
+    print(f"Manual multithreading: {time2 - time1} seconds")
+    print(len(averages), "rows")
 
     

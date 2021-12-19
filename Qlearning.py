@@ -48,45 +48,45 @@ def Qlearning_algo(data, Q_table, epsilon):
 
     reward = get_reward(data) # reward bepalen
     # print(reward)
-    Q_width = int(Q_table[0].size) # de breedte van de Q-table (x-as)
-    Q_length = int(Q_table.size / Q_width) # de lengte van de Q-table (y-as)
+    Q_width = Q_table.shape[1] # de breedte van de Q-table (x-as)
+    Q_length = Q_table.shape[0] - 1 # de lengte van de Q-table (y-as) zonder de headers
     lowest_average = np.Infinity # we zetten eerst het laagste gemiddelde voor het verschil tussen de state en een state uit de tabel naar oneindig, zodat de eerste sowieso kleiner is
 
     # vergelijkt de current state met alle states in de Q-table en berekent de state in de Q-table die het meest op de current state lijkt
-    for row in range(Q_length)[1:]:
-        values = Q_table[row][:6] #hier neemt hij alle data--> speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, van de regel in de Q-tabel die aan de beurt is
-        average_array = np.subtract(state, values) #hier neemt hij de huidige data en trekt hiervan de regel uit de Q-tabel die aan de beurt is af
-        average = np.average(average_array) # bereken het gemiddelde van de verschillen tussen de arrays
-        # sla het kleinste verschil en het rijnummer met het kleinste verschil op
+    Q_table_state = Q_table[1:, :6] # Q_table_state is the state part of the Q-table without the headers 
+    state_resized = np.resize(state, (Q_length, 6)) # Make a two dimensional array of the state repeated, where the length is the length of the Q-table, so that we can subtract them
+    subtracted_array = np.subtract(Q_table_state, state_resized) # The differences between the states in the Q-table and the current state
+    average_array = np.absolute(np.average(subtracted_array, axis=1)) # The averages of the differences per state, in absolutes so that we can determine the lowest average
+    best_row_index = np.argmin(average_array) # The index of the row of the Q-table that is most similar to the current state
+    lowest_average = average_array[best_row_index] # The value of the lowest average
+    # Check whether the same state as the current state already exists in the Q-table, so that we can determine which one to delete
+    if lowest_average == 0:
+        same_row_index = best_row_index
+        same_row_exists = True
+    else:
         same_row_exists = False
-        if average <= lowest_average:
-            lowest_average = average
-            best_state_row = row
-        if average == 0:
-            same_row = row
-            same_row_exists = True
  
             
-    resemblance_state = best_state_row # is de rij in de Q-table die het meest lijkt op de huidige state
-    future_state = resemblance_state + 1 # de voorspelling voor de volgende state wordt gelijk gesteld aan de state die volgt op de state die het meest op de huidige state lijkt
+    resemblance_state_index = best_row_index # is de rij in de Q-table die het meest lijkt op de huidige state
+    future_state_index = resemblance_state_index + 1 # de voorspelling voor de volgende state wordt gelijk gesteld aan de state die volgt op de state die het meest op de huidige state lijkt
 
     # als de future state van de resemblance state bestaat, nemen we daarvan de Q-waarde, anders nemen we de Q-waarde van de resemblance state zelf
-    if 0 <= future_state < len(Q_table):
-        Q_max = Q_table[future_state][Q_width - 1]
+    if 0 <= future_state_index < len(Q_table):
+        Q_max = Q_table[future_state_index][Q_width - 1]
     else:
-        Q_max = Q_table[resemblance_state][Q_width - 1]
+        Q_max = Q_table[resemblance_state_index][Q_width - 1]
     
-    Q_old = Q_table.item((Q_length - 1, Q_width - 1)) # de Q-waarde van de vorige tijdsstap is de waarde rechts onderin de tabel
+    Q_old = Q_table.item((Q_length, Q_width - 1)) # de Q-waarde van de vorige tijdsstap is de waarde rechts onderin de tabel
     Q_new = Q_old + alpha * (reward + gamma * Q_max - Q_old) #hier passen we de formule toe die past bij het q-learning algoritme
     #Q_new = 0.5 # ook nog een functie voor maken
 
-    actions, epsilon = determine_action(Q_table,  resemblance_state, epsilon)
+    actions, epsilon = determine_action(Q_table,  resemblance_state_index, epsilon)
     throttle, brakes, steering = actions
     
     # als er een rij is met de states die al bestaan, kijk welke een hogere Q-waarde geeft en zet die in de Q-table 
     if same_row_exists:
-        if Q_new > Q_table[same_row][Q_width - 1]:
-            np.delete(Q_table, same_row, 0)
+        if Q_new > Q_table[same_row_index][Q_width - 1]:
+            np.delete(Q_table, same_row_index, 0)
             Q_table = np.append(Q_table, [[speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, throttle, brakes, steering, Q_new]], axis=0)
         else:
             pass
