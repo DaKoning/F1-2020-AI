@@ -1,9 +1,7 @@
-import random
 import f1_2020_telemetry
 from f1_2020_telemetry.packets import PacketCarTelemetryData_V1, PacketHeader, unpack_udp_packet
 import socket
 import math
-from math import pi
 import numpy as np
 import os
 
@@ -40,7 +38,7 @@ def run_data_collection(data):
             data[8] = currentLapInvalid
 
         elif isinstance(packet, f1_2020_telemetry.packets.PacketMotionData_V1):
-            angle = 1 + packet.carMotionData[0].yaw / pi
+            angle = 1 + packet.carMotionData[0].yaw / np.pi
            
             PosX = ((packet.carMotionData[0].worldPositionX) + 700) * 5 
             PosZ = ((packet.carMotionData[0].worldPositionZ) + 1200) * 5 

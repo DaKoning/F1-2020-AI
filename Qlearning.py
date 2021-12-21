@@ -1,4 +1,3 @@
-from math import sqrt
 import numpy as np
 import random
 from os.path import exists
@@ -50,7 +49,6 @@ def Qlearning_algo(data, Q_table, epsilon):
     # print(reward)
     Q_width = Q_table.shape[1] # de breedte van de Q-table (x-as)
     Q_length = Q_table.shape[0] - 1 # de lengte van de Q-table (y-as) zonder de headers
-    lowest_average = np.Infinity # we zetten eerst het laagste gemiddelde voor het verschil tussen de state en een state uit de tabel naar oneindig, zodat de eerste sowieso kleiner is
 
     # vergelijkt de current state met alle states in de Q-table en berekent de state in de Q-table die het meest op de current state lijkt
     Q_table_state = Q_table[1:, :6] # Q_table_state is the state part of the Q-table without the headers 
