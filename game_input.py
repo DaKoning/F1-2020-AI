@@ -29,12 +29,6 @@ def special(input):
         time.sleep(input_time)
         gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
         gamepad.update()
-    elif input == 'back':
-        gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK)
-        gamepad.update()
-        time.sleep(input_time)
-        gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK)
-        gamepad.update()
     elif input == 'start':
         gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_START)
         gamepad.update()

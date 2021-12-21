@@ -90,7 +90,7 @@ def restart_lap():
     data[7] = startDistance # de oude distance moet weer beginnen op de startDistance, zodat de rewardbepaling bij de eerste episode klopt
 
 if __name__ == "__main__":
-    from data_collection import run_data_collection, startDistance, data
+    from data_collection import run, startDistance, data
     import game_input
     import Qlearning
     from tabulate import tabulate
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     from multiprocessing import Process, Array
 
     data = Array('d', data)
-    process_1 = Process(target=run_data_collection, args=(data,))
+    process_1 = Process(target=run, args=(data,))
     process_1.start() # het maakt niet uit dat we data_collection al starten voordat de game is gestart, want we gebruiken de data toch nog niet, maar dit zorgt er wel voor dat alles al geladen is voordat start() begint
 
     windowname = 'F1 2020 (DirectX 12)'

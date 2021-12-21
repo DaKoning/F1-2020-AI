@@ -1,7 +1,7 @@
 import numpy as np
 import math
 import time
-
+from timeit import timeit
 
 time1 = time.time()
 for i in range(10000):  

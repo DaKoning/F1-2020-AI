@@ -12,7 +12,7 @@ TRACK = np.genfromtxt(os.path.join('assets','Track2.csv'), dtype=float,encoding=
 RENDERDISTANCE = int(800)
 
 
-def run_data_collection(data):
+def run(data):
     #haalt alle telementry data uit de game in packets
     print("Data Collection: Binding to socket 20777")
     udp_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
