@@ -25,3 +25,4 @@ TO DO:
     punishment alleen op basis van invalid
     (misschien) pygame in main
     lowest_average kloppend maken (negatief is kleiner)
+    Q_width vooraf callen

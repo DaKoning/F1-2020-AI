@@ -1,7 +1,6 @@
 import numpy as np
 import random
 from os.path import exists
-from numpy.lib.function_base import average
 from tabulate import tabulate
 from multiprocessing import Pool
 
@@ -28,7 +27,7 @@ progress_old = 0
 
 alpha = 0.81
 gamma = 0.96
-epsilon_decay = 0.99999999 # de erpsilon decay kunnen we tweeken voor een betere performance
+epsilon_decay = 0.999968 # de erpsilon decay kunnen we tweeken voor een betere performance
 invalid_punishment = 10 # de straf die de AI moet krijgen wanneer de lap invalid is geworden (door b.v. het aanraken van het gras)
 
 # @jit(forceobj=True)
@@ -107,7 +106,7 @@ def get_reward(data):
     progress = totalDistance - totalDistance_old # de progress-reward is het verschil tussen de progress op dit moment en op het vorige moment, ofwel de afstand langs de center line die de auto heeft afgelegd
     reward = progress - punishment # de uiteindelijke reward is: de reward van de afstand die is afgelegd - de straf die de AI gekregen heeft voor raken van een grens
 
-    data[7] = totalDistance
+    data[7] = totalDistance # de nieuwe totalDistance_old wordt de totalDistance, zodat in de volgende tijdsstap de totalDistance_old klopt
 
     return reward
 

@@ -8,7 +8,7 @@ import os
 # data: speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid
 startDistance = -1004.96484375 # De oude distance moet beginnen op de startDistance, zodat de rewardbepaling bij de eerste episode klopt
 data = np.array([0, 0, 0, 0, 0, 0, 0, startDistance, 0], dtype=object)
-TRACK = np.genfromtxt(os.path.join('assets','Track2.csv'), dtype=float,encoding=None, delimiter=",")
+TRACK = np.genfromtxt(os.path.join('assets','Monza_Circuit.csv'), dtype=float,encoding=None, delimiter=",")
 RENDERDISTANCE = int(800)
 
 
