@@ -54,7 +54,9 @@ def Qlearning_algo(data, Q_table, epsilon):
     state_resized = np.resize(state, (Q_length, 6)) # Make a two dimensional array of the state repeated, where the length is the length of the Q-table, so that we can subtract them
     subtracted_array = np.subtract(Q_table_state, state_resized) # The differences between the states in the Q-table and the current state
     average_array = np.absolute(np.average(subtracted_array, axis=1)) # The averages of the differences per state, in absolutes so that we can determine the lowest average
-    best_row_index = np.argmin(average_array) # The index of the row of the Q-table that is most similar to the current state
+    Q_array = Q_table[1:, 10]
+    score_array = np.divide(Q_array, average_array)
+    best_row_index = np.argmax(score_array) # The index of the row of the Q-table that is most similar to the current state
     lowest_average = average_array[best_row_index] # The value of the lowest average
     # Check whether the same state as the current state already exists in the Q-table, so that we can determine which one to delete
     if lowest_average == 0:
@@ -122,7 +124,7 @@ def determine_action(Q_table, resemblance_state, epsilon):
         actions = [throttle, brakes, steering]
         
     else:
-        actions = Q_table[resemblance_state][6:9]
+        actions = Q_table[best_row_index][6:9]
          #  Dit zijn de random acties die de AI eerst moet nemen en daar komt vervolgens een state uit die in de AI wordt gevoed
     return actions, epsilon
 
