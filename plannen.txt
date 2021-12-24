@@ -7,22 +7,22 @@ DONE actions bepalen
     DONE actie laten uitvoeren op basis van zijn q-value
 DONE state in Q-table vervangen als het precies hetzelfde is
 DONE determine termination aan de hand van tijd of botsing
+DONE game input maken
 
-game input maken
 frequentie van programma verhogen (betere processor kopen)(oh nee wacht we zijn skere)
-    multiprocessing
+    DONE multiprocessing
     gpu acceleration (gaat nie lukken man kogel gay, maar echt wtf)
     meerdere computers koppelen (wtf denken we)
-    DONE epsilon opslaan in memory in plaats van returnen via main.py
+    DONE variabelen opslaan in memory in plaats van returnen via main.py
     q_table, progress_old tijdelijk opslaan als public variable (dan wordt ie gewoon opgeslagen in een allocated ram space)
 Deep Q network die betere beslissingen kan maken
 
 
-speed in m/s, zodat punishment duidelijker kan worden bepaald
 
 TO DO:
-    multiprocessing fixen
-    punishment alleen op basis van invalid
+    DONE multiprocessing fixen
+    DONE punishment alleen op basis van invalid
+    DONE lowest_average kloppend maken (negatief is kleiner)
+    DONE Q formule fixen
     (misschien) pygame in main
-    lowest_average kloppend maken (negatief is kleiner)
-    Q_width vooraf callen
+
