@@ -51,11 +51,11 @@ def run(data):
             anglelist = calculateangle(TRACK, Pos, angle)
             ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront = raycast(Pos, anglelist, angle)
 
-            data[1] = ray_front
-            data[2] = ray_right
-            data[3] = ray_left
-            data[4] = ray_rightfront
-            data[5] = ray_leftfront
+            data[1] = round(ray_front / 10) * 10
+            data[2] = round(ray_right / 10) * 10
+            data[3] = round(ray_left / 10) * 10
+            data[4] = round(ray_rightfront / 10) * 10
+            data[5] = round(ray_leftfront / 10) * 10
 
             # print(f"Data Collection: ray_front       :  {ray_front}")
             # print(f"Data Collection: ray_right       :  {ray_right}")
@@ -66,7 +66,7 @@ def run(data):
 
         elif isinstance(packet, f1_2020_telemetry.packets.PacketCarTelemetryData_V1):
             speed = packet.carTelemetryData[0].speed
-            data[0] = speed
+            data[0] = round(speed / 10) * 10
             # print(f"Data Collection: Speed: {data[0]}")
 
 

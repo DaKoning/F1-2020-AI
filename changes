@@ -1,0 +1,5 @@
+In main() na start functie toegevoegd die ervoor zorgt dat de game pauseert, zodat data_collection automatisch stopt
+no_speed_punishment toegevoegd
+Qlearning geeft alleen dezelfde acties als dezelfde state al bestaat, anders worden het random acties
+Vervang de Q-waarde in de Q-table ipv opnieuw toevoegen, zodat de future_state nog steeds makkelijk bepaald kan worden
+Als de lap gerestart gaat worden, wordt de future state niet bepaald, aangezien deze er niet is. De future state Q-waarde wordt 0.

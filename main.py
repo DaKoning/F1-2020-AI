@@ -5,7 +5,7 @@ def start():
     frequency = 10
     period = (1.0/frequency)
     
-    episodes = 50000 # Hoe vaak je de AI wilt laten runnen
+    episodes = 5000000 # Hoe vaak je de AI wilt laten runnen
     max_time = 1000000 # In seconden
     timeToStop = time.time() + max_time
 
@@ -52,6 +52,7 @@ def start():
                 break
             while timeToEnd > time.time(): # Dit is zodat het proces niet opnieuw start wanneer de periode nog niet is afgerond
                 time.sleep(0)
+    game_input.special('start') # Press start to open menu, so that data_collection stops
     print("Main: start() has stopped")
 
 
@@ -71,6 +72,7 @@ def save(Q_table, epsilon):
 def activate_window():
     win = gw.getWindowsWithTitle(windowname)[0]
     win.activate()
+    print(f"Main: Focussed {windowname}")
 
 def restart_lap():
     print("Main: Restarting lap")
