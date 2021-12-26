@@ -16,14 +16,21 @@ def start():
         current_episode += 1
         # print(f"Main: Episode: {current_episode}")
 
-        # data = data_collection.data # Dit is niet meer nodig, want we halen de data nu direct uit data_collection in Qlearning
-        actions, Q_table, epsilon = Qlearning.run(data, Q_table, epsilon) # data voeden we aan Qlearning en krijgen een return
+        current_data = data # We zetten data vast in current_data, zodat beide functies hierna dezelfde data gebruiken
+
+        if current_episode != 1:
+            Q_table = Qlearning.determine_Q(Q_table, current_data, state_old, actions_old)        
+        actions, epsilon = Qlearning.determine_actions(current_data, Q_table, epsilon) # data voeden we aan Qlearning en krijgen een return
 
         if play_game:
             game_input.run(actions)
             if not gw.getActiveWindow().title == windowname:
                 print("Main: F1 2020 window not focussed")
                 break
+        
+        data[7] = current_data[6] # De nieuwe totalDistance_old wordt de totalDistance, zodat in de volgende tijdsstap de totalDistance_old klopt
+        actions_old = actions # We stellen actions_old gelijk aan actions, zodat die in de volgende tijdsstap kunnen worden gebruikt voor het bepalen van de Q-waarde van deze tijdsstap
+        state_old = current_data[:6] # We stellen state_old gelijk aan de state van nu, zodat die in de volgende tijdsstap kan worden gebruikt voor het bepalen van de Q-waarde van deze tijdsstap
 
         # Als het script een exit signaal krijgt, zorgt dit ervoor dat de Q_table en de epsilon worden opgeslagen
         if not delete_progress:
