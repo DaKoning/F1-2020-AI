@@ -17,7 +17,7 @@ def run(data):
     print("Data Collection: Binding to socket 20777")
     udp_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     udp_socket.bind(("", 20777))
-    udp_timeout = 5
+    udp_timeout = 2
     udp_socket.settimeout(udp_timeout)
     print("Data Collection: Bound to socket 20777")
 
@@ -26,7 +26,7 @@ def run(data):
             udp_packet = udp_socket.recv(2048)
             packet = unpack_udp_packet(udp_packet)
         except socket.timeout:
-            print(f"Data Collection: Not receiving any UDP packet after {udp_timeout} second(s)")
+            print(f"Data Collection: Not receiving any UDP packet after {udp_timeout} seconds")
             break
 
         # Het haalt de parameters die we willen uit de packets

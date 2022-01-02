@@ -24,5 +24,5 @@ TO DO:
     DONE punishment alleen op basis van invalid
     DONE lowest_average kloppend maken (negatief is kleiner)
     DONE Q formule fixen
+    DONE Future state voorspelling verbeteren
     (misschien) pygame in main
-

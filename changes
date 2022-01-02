@@ -4,4 +4,6 @@ Qlearning geeft alleen dezelfde acties als dezelfde state al bestaat, anders wor
 Vervang de Q-waarde in de Q-table ipv opnieuw toevoegen, zodat de future_state nog steeds makkelijk bepaald kan worden
 Als de lap gerestart gaat worden, wordt de future state niet bepaald, aangezien deze er niet is. De future state Q-waarde wordt 0.
 
-De Q-waarde moet bepaald worden nádat de actie is uitgevoerd, dus bij de volgende tijdsstap, dus ik heb heel Qlearning.py omgegooid om dat waar te maken
+Q-learning 2.0: De Q-waarde moet bepaald worden nádat de actie is uitgevoerd, dus bij de volgende tijdsstap, dus ik heb heel Qlearning.py omgegooid om dat waar te maken 
+
+Q-learning 3.0: De Q-value van de future state wordt nu bepaald aan de hand van de state die het meest lijkt op de current state (hiermee wordt de Q-waarde van de vorige state bepaald), zodat er geen hoge Q-waarde meer wordt gegeven aan de actie die zorgt voor een invalid lap (dat kwam doordat de AI een hoge reward kreeg omdat de beginstaat van de volgende lap een goede staat is)

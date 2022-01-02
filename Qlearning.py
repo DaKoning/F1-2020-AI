@@ -7,7 +7,7 @@ delete_progress = False
 if delete_progress or not exists("Qtable.npy"):
     # Q_table = 'speed', 'ray_front', 'ray_right', 'ray_left', 'ray_rightfront', 'ray_leftfront', 'throttle', 'brakes', 'steering', 'Q'
     print("Q-learning: Creating Q-table")
-    Q_table = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+    Q_table = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=object)
     np.save("Qtable", Q_table)
 else:
     print("Q-learning: Loading Q-table")
@@ -40,32 +40,18 @@ invalid_punishment = 100 # De straf die de AI moet krijgen wanneer de lap invali
 no_speed_punishment = 100 # Des straf die de AI moet krijgen wanneer hij geen snelheid heeft (stilstaan midden op de track of b.v. tegen een muur
 
 
-def determine_Q(Q_table, data, state_old, actions_old):
-    speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid = data
+def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
 
     reward = get_reward(data) # Reward bepalen
 
     speed_old, ray_front_old, ray_right_old, ray_left_old, ray_rightfront_old, ray_leftfront_old = state_old
     throttle_old, brakes_old, steering_old = actions_old
-
-    Q_length = Q_table.shape[0] # De lengte van de Q-table (y-as) zonder de headers
-        
-    # De voorspelling voor de volgende state wordt gelijk gesteld aan de state die volgt op de state die het meest op de last state lijkt, maar alleen als de lap niet opnieuw wordt gestart
-    if speed != 0 and currentLapInvalid != 1:
-        Q_table_state = Q_table[:, :6] # Q_table_state is the state part of the Q-table without the headers 
-        state_resized = np.resize(state_old, (Q_length, 6)) # Make a two dimensional array of the state repeated, where the length is the length of the Q-table, so that we can subtract them
-        subtracted_array = np.subtract(Q_table_state, state_resized) # The differences between the states in the Q-table and the current state
-        average_array = np.absolute(np.average(subtracted_array, axis=1)) # The averages of the differences per state, in absolutes so that we can determine the lowest average
-        most_similar_state_index = np.argmin(average_array) # The index of the row of the Q-table that is most similar to the current state
-        future_state_index = most_similar_state_index + 1 # De voorspelling voor de volgende state
-    # Als de lap wel opnieuw wordt gestart, wordt de future state Q-waarde 0 (bij Q-table index van 0)
+    
+    # De voorspelling voor de volgende state van de last state wordt gelijk gesteld aan de state die het meest lijkt op de current state
+    if best_row_index:
+        Q_max = Q_table[best_row_index, 9]
     else:
-        future_state_index = 0
-    # Als de future state van de best row in de Q-table bestaat, nemen we daarvan de Q-waarde, anders nemen we de Q-waarde van de state die er het meest op lijkt
-    if 0 <= future_state_index < Q_length - 1:
-        Q_max = Q_table[future_state_index, 9]
-    else:
-        Q_max = Q_table[most_similar_state_index, 9]
+        Q_max = 0.0
 
     # Check whether the same state-action pair as the last state-action pair already exists in the Q-table
     row = list(state_old) + actions_old
@@ -85,9 +71,12 @@ def determine_Q(Q_table, data, state_old, actions_old):
         # Voeg de nieuwe row met de state, de actions en de Q-waarde toe aan de Q-table
         Q_table = np.append(Q_table, [[speed_old, ray_front_old, ray_right_old, ray_left_old, ray_rightfront_old, ray_leftfront_old, throttle_old, brakes_old, steering_old, Q_new]], axis=0)
     
+    # print(f"Q-learning:\tReward: {format(reward, '.16f')},\tQ: {format(Q_new, '.16f')}")
+
     return Q_table
 
 def get_reward(data):
+    # print("Q-learning: Getting reward")
     speed = data[0]
     totalDistance, totalDistance_old, currentLapInvalid = data[6:]
 
@@ -100,12 +89,11 @@ def get_reward(data):
     else:
         progress = totalDistance - totalDistance_old # De progress is het verschil tussen de progress op dit moment en op het vorige moment, ofwel de afstand langs de center line die de auto heeft afgelegd
         reward = progress ** 2  # De uiteindelijke reward is: de reward van de afstand die is afgelegd
-    print(f"Q-learning: Reward: {reward}")
 
     return reward
 
-
-def determine_actions(data, Q_table, epsilon):
+def get_best_row(data, Q_table):
+    # print("Q-learning: Getting best row")
     speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid = data
     state = speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront
 
@@ -119,7 +107,11 @@ def determine_actions(data, Q_table, epsilon):
     else:
         best_row_index = None
 
+    return best_row_index
 
+
+def determine_actions(Q_table, epsilon, best_row_index):
+    # print("Q-learning: Determining actions")
     epsilon = determine_epsilon(epsilon)
     r = random.randint(1, 10000) / 10000
     if r <= epsilon:
@@ -142,5 +134,6 @@ def determine_actions(data, Q_table, epsilon):
     return actions, epsilon
 
 def determine_epsilon(epsilon):
+    # print("Q-learning: Determining epsilon")
     epsilon =  epsilon * epsilon_decay
     return epsilon
