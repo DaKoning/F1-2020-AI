@@ -6,4 +6,8 @@ Als de lap gerestart gaat worden, wordt de future state niet bepaald, aangezien 
 
 Q-learning 2.0: De Q-waarde moet bepaald worden nádat de actie is uitgevoerd, dus bij de volgende tijdsstap, dus ik heb heel Qlearning.py omgegooid om dat waar te maken 
 
-Q-learning 3.0: De Q-value van de future state wordt nu bepaald aan de hand van de state die het meest lijkt op de current state (hiermee wordt de Q-waarde van de vorige state bepaald), zodat er geen hoge Q-waarde meer wordt gegeven aan de actie die zorgt voor een invalid lap (dat kwam doordat de AI een hoge reward kreeg omdat de beginstaat van de volgende lap een goede staat is)
+Q-learning 3.0: De Q-value van de future state wordt nu bepaald aan de hand van de state die het meest lijkt op de current state (hiermee wordt de Q-waarde van de vorige state bepaald)
+
+Wanneer de lap invalid is, wordt de Q_max 0, zodat deze slechte actie geen hoge Q-waarde krijgt omdat de staat na de restart wel een goede staat is
+De AI mag 1x te traag zijn, de tweede keer wordt het script gestopt (voor computerhaperingen)
+De totale tijd van de AI wordt nu bijgehouden

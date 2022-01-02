@@ -1,6 +1,3 @@
-from os import kill
-
-
 def start():
     current_episode = 0
     Q_table = Qlearning.Q_table
@@ -11,6 +8,10 @@ def start():
     episodes = 5000000 # Hoe vaak je de AI wilt laten runnen
     max_time = 1000000 # In seconden
     timeToStop = time.time() + max_time
+
+    times_too_late = 0 # The number of times that the AI can't keep up
+
+    lap_restarted = True
 
     delete_progress = Qlearning.delete_progress
 
@@ -26,10 +27,11 @@ def start():
         current_data = data # We zetten data vast in current_data, zodat alle functies hierna dezelfde data gebruiken
         # We bepalen de index van de rij die het meest lijkt op de current state, deze hebben we nodig om de Q-waarde van de vorige state te bepalen, maar ook om te bepalen wat nu de beste actie is
         best_row_index = Qlearning.get_best_row(current_data, Q_table)
-        # Als dit niet de eerste episode is, dan berekenen we de Q-waarde van de vorige state-action pair
-        if current_episode != 1:
+        # Als de lap niet (opnieuw) gestart is, dan berekenen we de Q-waarde van de vorige state-action pair
+        if not lap_restarted:
             Q_table = Qlearning.determine_Q(Q_table, current_data, state_old, actions_old, best_row_index)
-        
+        else:
+            lap_restarted = False
     
         actions, epsilon = Qlearning.determine_actions(Q_table, epsilon, best_row_index) # data voeden we aan Qlearning en krijgen een return
         # De acties worden alleen uitgevoerd als we het spel willen spelen
@@ -40,7 +42,7 @@ def start():
         data[7] = current_data[6] # De nieuwe totalDistance_old wordt de totalDistance, zodat in de volgende tijdsstap de totalDistance_old klopt
         actions_old = actions # We stellen actions_old gelijk aan actions, zodat die in de volgende tijdsstap kunnen worden gebruikt voor het bepalen van de Q-waarde van deze tijdsstap
         state_old = current_data[:6] # We stellen state_old gelijk aan de state van nu, zodat die in de volgende tijdsstap kan worden gebruikt voor het bepalen van de Q-waarde van deze tijdsstap
-
+        
         # Als het script een exit signaal krijgt, zorgt dit ervoor dat de Q_table en de epsilon worden opgeslagen
         if not delete_progress:
             # print("Main: Registering exit handler")
@@ -48,17 +50,21 @@ def start():
             atexit.register(exit_handler, Q_table, epsilon)
     
         # Als currentLapInvalid == 1 (de lap is invalid), of als er geen snelheid is (bijvoorbeeld wanneer de auto tegen een muur aan staat), dan restarten we de lap. Dit gebeurt na de Qlearning.determine_Q functie, zodat er een straf is bepaald voor de actie die hiertoe heeft geleid
-        if data[8] == 1:
+        if current_data[8] == 1:
             print("Main: Lap invalid")
             restart_lap()
-        elif data[0] == 0:
+            lap_restarted = True
+        elif current_data[0] == 0:
             print("Main: No speed")
             restart_lap()
+            lap_restarted = True
         else: # Als de lap invalid is en dus opnieuw op moet worden gestart, moet er niet gecheckt worden of de fuctie te traag is, omdat het opnieuw opstarten 6 seconden duurt
             if timeToEnd < time.time():
                 print("Main: Can't keep up! Frequency is too high!")
                 print(f"Main: Episode: {current_episode}")
-                break
+                times_too_late += 1
+                if times_too_late >= 2:
+                    break
             # Als de maximale hoeveelheid episodes of tijd verstreken is, stopt de loop
             if current_episode >= episodes or timeToStop <= time.time():
                 print("Main: It's time to stop")
@@ -108,6 +114,8 @@ if __name__ == "__main__":
     import pygetwindow as gw
     from multiprocessing import Process, Array
 
+    starting_time = time.time()
+
     data = Array('d', data)
     process_1 = Process(target=run, args=(data,))
     process_1.start() # Het maakt niet uit dat we data_collection al starten voordat de game is gestart, want we gebruiken de data toch nog niet, maar dit zorgt er wel voor dat alles al geladen is voordat start() begint
@@ -127,3 +135,15 @@ if __name__ == "__main__":
     print("Main: Waiting for Data Collection to end")
     process_1.join()
     print("Main: Data Collection has ended")
+
+    # We slaan de totale tijd die de AI runt op
+    ending_time = time.time()
+    running_time = ending_time - starting_time
+    with open("time", "r") as file:
+        total_time = float(file.read())
+    total_time += running_time
+    file = open("time", "w")
+    file.write(str(total_time))
+    file.close()
+
+    print("Main: Finished")

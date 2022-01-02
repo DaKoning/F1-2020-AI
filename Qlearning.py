@@ -9,16 +9,19 @@ if delete_progress or not exists("Qtable.npy"):
     print("Q-learning: Creating Q-table")
     Q_table = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=object)
     np.save("Qtable", Q_table)
+    file = open("time", "w")
+    file.write(str(0.0))
+    file.close()
 else:
     print("Q-learning: Loading Q-table")
     Q_table = np.load("Qtable.npy", allow_pickle=True)
 
 if delete_progress or not exists("epsilon"):
     print("Q-learning: Creating epsilon")
-    epsilon = 0.75
+    epsilon = 0.5
     file = open("epsilon", "w")
     file.write(str(epsilon))
-    file.close
+    file.close()
 else:
     print("Q-learning: Loading epsilon")
     file = open("epsilon", "r")
@@ -41,14 +44,16 @@ no_speed_punishment = 100 # Des straf die de AI moet krijgen wanneer hij geen sn
 
 
 def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
+    speed = data[0]
+    currentLapInvalid = data[8]
 
     reward = get_reward(data) # Reward bepalen
 
     speed_old, ray_front_old, ray_right_old, ray_left_old, ray_rightfront_old, ray_leftfront_old = state_old
     throttle_old, brakes_old, steering_old = actions_old
     
-    # De voorspelling voor de volgende state van de last state wordt gelijk gesteld aan de state die het meest lijkt op de current state
-    if best_row_index:
+    # De voorspelling voor de volgende state van de last state wordt gelijk gesteld aan de state die het meest lijkt op de current state, maar alleen als de lap niet gerestart wordt, dan moet er geen hoge Q_max worden toegewezen
+    if best_row_index and speed != 0 and currentLapInvalid != 1:
         Q_max = Q_table[best_row_index, 9]
     else:
         Q_max = 0.0
@@ -79,6 +84,7 @@ def get_reward(data):
     # print("Q-learning: Getting reward")
     speed = data[0]
     totalDistance, totalDistance_old, currentLapInvalid = data[6:]
+
 
     if currentLapInvalid:
         punishment = invalid_punishment

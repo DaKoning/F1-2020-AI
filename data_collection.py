@@ -17,7 +17,7 @@ def run(data):
     print("Data Collection: Binding to socket 20777")
     udp_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     udp_socket.bind(("", 20777))
-    udp_timeout = 2
+    udp_timeout = 5
     udp_socket.settimeout(udp_timeout)
     print("Data Collection: Bound to socket 20777")
 
