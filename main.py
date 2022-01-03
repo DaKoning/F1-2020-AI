@@ -90,9 +90,13 @@ def save(Q_table, epsilon):
     print("Main: Epsilon saved!")
 
 def activate_window():
+    print(f"Main: Focussing {windowname}")
     win = gw.getWindowsWithTitle(windowname)[0]
-    win.activate()
-    print(f"Main: Focussed {windowname}")
+    try:
+        win.activate()
+        print(f"Main: Focussed {windowname}")
+    except gw.PyGetWindowException:
+        print(f"Main: Could not focus {windowname}")
 
 def restart_lap():
     print("Main: Restarting lap")

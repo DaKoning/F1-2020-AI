@@ -39,8 +39,8 @@ alpha = 0.81
 gamma = 0.96
 epsilon_decay = 1 # De erpsilon decay kunnen we tweeken voor een betere performance
 Q_old = 0
-invalid_punishment = 100 # De straf die de AI moet krijgen wanneer de lap invalid is geworden (door b.v. het aanraken van het gras)
-no_speed_punishment = 100 # Des straf die de AI moet krijgen wanneer hij geen snelheid heeft (stilstaan midden op de track of b.v. tegen een muur
+invalid_punishment = 1000 # De straf die de AI moet krijgen wanneer de lap invalid is geworden (door b.v. het aanraken van het gras)
+no_speed_punishment = 1000 # Des straf die de AI moet krijgen wanneer hij geen snelheid heeft (stilstaan midden op de track of b.v. tegen een muur
 
 
 def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
