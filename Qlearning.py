@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from os.path import exists
+import tkinter as tk
 
 delete_progress = False
 
@@ -9,9 +10,6 @@ if delete_progress or not exists("Qtable.npy"):
     print("Q-learning: Creating Q-table")
     Q_table = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=object)
     np.save("Qtable", Q_table)
-    file = open("time", "w")
-    file.write(str(0.0))
-    file.close()
 else:
     print("Q-learning: Loading Q-table")
     Q_table = np.load("Qtable.npy", allow_pickle=True)
@@ -27,6 +25,7 @@ else:
     file = open("epsilon", "r")
     epsilon = float(file.read())
 
+window = tk.Tk()
 
 """
 alpha is the learning rate, which determines how much newly acquired information overrides old information.
@@ -94,7 +93,7 @@ def get_reward(data):
         reward = 0 - punishment
     else:
         progress = totalDistance - totalDistance_old # De progress is het verschil tussen de progress op dit moment en op het vorige moment, ofwel de afstand langs de center line die de auto heeft afgelegd
-        reward = progress ** 2  # De uiteindelijke reward is: de reward van de afstand die is afgelegd
+        reward = progress ** 3  # De uiteindelijke reward is: de reward van de afstand die is afgelegd
 
     return reward
 
@@ -130,6 +129,10 @@ def determine_actions(Q_table, epsilon, best_row_index):
         # If there is a best row (a row in the Q-table that has the same state, with the highest Q-value), the actions will be the actions of that row
         if best_row_index:
             actions = list(Q_table[best_row_index, 6:9])
+
+            Q = Q_table[best_row_index, 9]
+            text = tk.Label(text=str(Q))
+            text.pack()
         # If there is no same row, determine actions randomly
         else:
             throttle = random.randint(0,10)
