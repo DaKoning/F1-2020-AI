@@ -6,9 +6,9 @@ import tkinter as tk
 delete_progress = False
 
 if delete_progress or not exists("Qtable.npy"):
-    # Q_table = 'speed', 'ray_front', 'ray_right', 'ray_left', 'ray_rightfront', 'ray_leftfront', 'throttle', 'brakes', 'steering', 'Q'
+    # Q_table = 'speed', 'ray_front', 'ray_rightfront', 'ray_leftfront', 'steering', 'Q'
     print("Q-learning: Creating Q-table")
-    Q_table = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=object)
+    Q_table = np.array([[0, 0, 0, 0, 0]], dtype=object)
     np.save("Qtable", Q_table)
 else:
     print("Q-learning: Loading Q-table")
@@ -44,36 +44,36 @@ no_speed_punishment = 1000 # Des straf die de AI moet krijgen wanneer hij geen s
 
 def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
     speed = data[0]
-    currentLapInvalid = data[8]
+    currentLapInvalid = data[6]
 
     reward = get_reward(data) # Reward bepalen
 
-    speed_old, ray_front_old, ray_right_old, ray_left_old, ray_rightfront_old, ray_leftfront_old = state_old
-    throttle_old, brakes_old, steering_old = actions_old
+    ray_front_old, ray_rightfront_old, ray_leftfront_old = state_old
+    steering_old = actions_old
     
     # De voorspelling voor de volgende state van de last state wordt gelijk gesteld aan de state die het meest lijkt op de current state, maar alleen als de lap niet gerestart wordt, dan moet er geen hoge Q_max worden toegewezen
     if best_row_index and speed != 0 and currentLapInvalid != 1:
-        Q_max = Q_table[best_row_index, 9]
+        Q_max = Q_table[best_row_index, 4]
     else:
         Q_max = 0.0
 
     # Check whether the same state-action pair as the last state-action pair already exists in the Q-table
-    row = list(state_old) + actions_old
-    same_row_index = np.argwhere(np.all(Q_table[:, :9] == row, axis=1) == True) # De same_row_index is de index van de rij die precies dezelfde state en actions heeft als de last state en last actions
+    row = list(state_old).append(actions_old)
+    same_row_index = np.argwhere(np.all(Q_table[:, :4] == row, axis=1) == True) # De same_row_index is de index van de rij die precies dezelfde state en actions heeft als de last state en last actions
     # Als er daadwerkelijk een same_row is, zetten we de Q_old naar de Q-waarde van die row en verwijderen we de row uit de Q-table, zodat hij vervangen kan worden door de nieuwe Q-waarde
     if same_row_index.size != 0:
         same_row_index = same_row_index[0, 0]
-        Q_old = Q_table[same_row_index, 9]
+        Q_old = Q_table[same_row_index, 4]
 
         Q_new = Q_old + alpha * (reward + gamma * Q_max - Q_old) # Hier passen we de formule toe die past bij het Q-learning algoritme
-        Q_table[same_row_index, 9] = Q_new
+        Q_table[same_row_index, 4] = Q_new
     # Als er geen same_row is, wordt Q_old 0.0 (Q_new is dan gewoon de Q bepaald met reward en Q_max), en wordt de nieuwe Q-waarde toegevoegd
     else:
         Q_old = 0.0
 
         Q_new = Q_old + alpha * (reward + gamma * Q_max - Q_old) # Hier passen we de formule toe die past bij het Q-learning algoritme
         # Voeg de nieuwe row met de state, de actions en de Q-waarde toe aan de Q-table
-        Q_table = np.append(Q_table, [[speed_old, ray_front_old, ray_right_old, ray_left_old, ray_rightfront_old, ray_leftfront_old, throttle_old, brakes_old, steering_old, Q_new]], axis=0)
+        Q_table = np.append(Q_table, [[ray_front_old, ray_rightfront_old, ray_leftfront_old, steering_old, Q_new]], axis=0)
     
     # print(f"Q-learning:\tReward: {format(reward, '.16f')},\tQ: {format(Q_new, '.16f')}")
 
@@ -82,7 +82,7 @@ def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
 def get_reward(data):
     # print("Q-learning: Getting reward")
     speed = data[0]
-    totalDistance, totalDistance_old, currentLapInvalid = data[6:]
+    totalDistance, totalDistance_old, currentLapInvalid = data[4:]
 
 
     if currentLapInvalid:
@@ -99,14 +99,15 @@ def get_reward(data):
 
 def get_best_row(data, Q_table):
     # print("Q-learning: Getting best row")
-    speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid = data
-    state = speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront
+    speed, ray_front, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid = data
+    state = ray_front, ray_rightfront, ray_leftfront
+
 
     # Vergelijkt de current state met alle states in de Q-table en berekent de state in de Q-table die het meest op de current state lijkt
-    same_state_indexes = np.argwhere(np.all(Q_table[:, :6] == state, axis=1) == True) # The indexes of the Q-table where the state is the same as the current state
+    same_state_indexes = np.argwhere(np.all(Q_table[:, :3] == state, axis=1) == True) # The indexes of the Q-table where the state is the same as the current state
     # If there is/are same state(s), detemine which has the best Q-value and determine the Q-table index of that row
     if same_state_indexes.size != 0:
-        Q_values = Q_table[same_state_indexes, 9]
+        Q_values = Q_table[same_state_indexes, 4]
         best_row_index = same_state_indexes[np.argmax(Q_values)][0]
     # If there is no same state, there is no best_row_index, so the action must be randomly determined
     else:
@@ -121,24 +122,20 @@ def determine_actions(Q_table, epsilon, best_row_index):
     r = random.randint(1, 10000) / 10000
     if r <= epsilon:
         # exploration
-        throttle = random.randint(0,10)
-        brakes = random.randint(0,10)
-        steering = random.randint(-10,10)
-        actions = [throttle, brakes, steering] 
+        steering = random.randint(-1,1)
+        actions = steering
     else:
         # If there is a best row (a row in the Q-table that has the same state, with the highest Q-value), the actions will be the actions of that row
         if best_row_index:
-            actions = list(Q_table[best_row_index, 6:9])
+            actions = Q_table[best_row_index, 3]
 
-            Q = Q_table[best_row_index, 9]
+            Q = Q_table[best_row_index, 4]
             text = tk.Label(text=str(Q))
             text.pack()
         # If there is no same row, determine actions randomly
         else:
-            throttle = random.randint(0,10)
-            brakes = random.randint(0,10)
-            steering = random.randint(-10,10)
-            actions = [throttle, brakes, steering] 
+            steering = random.randint(-1,1)
+            actions = steering
     
     return actions, epsilon
 

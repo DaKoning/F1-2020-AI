@@ -5,9 +5,9 @@ import math
 import numpy as np
 import os
 
-# data: speed, ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid
+# data: speed, ray_front, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid
 startDistance = -1004.96484375 # De oude distance moet beginnen op de startDistance, zodat de rewardbepaling bij de eerste episode klopt
-data = np.array([0, 0, 0, 0, 0, 0, 0, startDistance, 0], dtype=object)
+data = np.array([0, 0, 0, 0, 0, startDistance, 0], dtype=object)
 TRACK = np.genfromtxt(os.path.join('assets','Monza_Circuit.csv'), dtype=float,encoding=None, delimiter=",")
 RENDERDISTANCE = int(800)
 
@@ -33,9 +33,9 @@ def run(data):
         if isinstance(packet, f1_2020_telemetry.packets.PacketLapData_V1):
             # currentLapTime = packet.lapData[0].currentLapTime
             totalDistance = packet.lapData[0].totalDistance
-            data[6] = totalDistance
+            data[4] = totalDistance
             currentLapInvalid = packet.lapData[0].currentLapInvalid
-            data[8] = currentLapInvalid
+            data[6] = currentLapInvalid
 
         elif isinstance(packet, f1_2020_telemetry.packets.PacketMotionData_V1):
             angle = 1 + packet.carMotionData[0].yaw / np.pi
@@ -52,10 +52,8 @@ def run(data):
             ray_front, ray_right, ray_left, ray_rightfront, ray_leftfront = raycast(Pos, anglelist, angle)
 
             data[1] = round(ray_front / 10) * 10
-            data[2] = round(ray_right / 10) * 10
-            data[3] = round(ray_left / 10) * 10
-            data[4] = round(ray_rightfront / 10) * 10
-            data[5] = round(ray_leftfront / 10) * 10
+            data[2] = round(ray_rightfront / 10) * 10
+            data[3] = round(ray_leftfront / 10) * 10
 
             # print(f"Data Collection: ray_front       :  {ray_front}")
             # print(f"Data Collection: ray_right       :  {ray_right}")

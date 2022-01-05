@@ -9,9 +9,6 @@ if delete_progress or not exists("Qtable.npy"):
     print("Q-learning: Creating Q-table")
     Q_table = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=object)
     np.save("Qtable", Q_table)
-    file = open("time", "w")
-    file.write(str(0.0))
-    file.close()
 else:
     print("Q-learning: Loading Q-table")
     Q_table = np.load("Qtable.npy", allow_pickle=True)
@@ -39,8 +36,8 @@ alpha = 0.81
 gamma = 0.96
 epsilon_decay = 1 # De erpsilon decay kunnen we tweeken voor een betere performance
 Q_old = 0
-invalid_punishment = 100 # De straf die de AI moet krijgen wanneer de lap invalid is geworden (door b.v. het aanraken van het gras)
-no_speed_punishment = 100 # Des straf die de AI moet krijgen wanneer hij geen snelheid heeft (stilstaan midden op de track of b.v. tegen een muur
+invalid_punishment = 1000 # De straf die de AI moet krijgen wanneer de lap invalid is geworden (door b.v. het aanraken van het gras)
+no_speed_punishment = 1000 # Des straf die de AI moet krijgen wanneer hij geen snelheid heeft (stilstaan midden op de track of b.v. tegen een muur
 
 
 def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
@@ -94,7 +91,7 @@ def get_reward(data):
         reward = 0 - punishment
     else:
         progress = totalDistance - totalDistance_old # De progress is het verschil tussen de progress op dit moment en op het vorige moment, ofwel de afstand langs de center line die de auto heeft afgelegd
-        reward = progress ** 2  # De uiteindelijke reward is: de reward van de afstand die is afgelegd
+        reward = progress ** 3  # De uiteindelijke reward is: de reward van de afstand die is afgelegd
 
     return reward
 
@@ -130,6 +127,8 @@ def determine_actions(Q_table, epsilon, best_row_index):
         # If there is a best row (a row in the Q-table that has the same state, with the highest Q-value), the actions will be the actions of that row
         if best_row_index:
             actions = list(Q_table[best_row_index, 6:9])
+
+            Q = Q_table[best_row_index, 9]
         # If there is no same row, determine actions randomly
         else:
             throttle = random.randint(0,10)

@@ -4,14 +4,10 @@ import vgamepad as vg
 gamepad = vg.VX360Gamepad()
 
 def run(actions):
-    throttle, brakes, steering = actions
-    throttle = throttle / 10
-    brakes = brakes / 10
-    steering = steering / 10
+    steering = actions
     
-    gamepad.right_trigger_float(value_float=throttle)
-    gamepad.left_trigger_float(value_float=brakes)
-    gamepad.left_joystick_float(x_value_float=steering, y_value_float=0)
+    gamepad.right_trigger_float(value_float=0.15)    
+    gamepad.left_joystick_float(x_value_float=steering, y_value_float=0.0)
 
     gamepad.update()
 
@@ -40,4 +36,14 @@ def special(input):
         gamepad.update()
         time.sleep(input_time)
         gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB)
+        gamepad.update()
+    elif input == 'go_to_location':
+        gamepad.left_joystick_float(x_value_float=0.0, y_value_float=0.0)
+        gamepad.update()
+        time.sleep(3)
+        gamepad.left_trigger_float(value_float=1.0)  
+        gamepad.left_joystick_float(x_value_float=0.25, y_value_float=0.0)
+        gamepad.update()
+        time.sleep(2.25)
+        gamepad.left_trigger_float(value_float=0.0)
         gamepad.update()

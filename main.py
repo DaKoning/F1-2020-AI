@@ -2,7 +2,7 @@ def start():
     current_episode = 0
     Q_table = Qlearning.Q_table
     epsilon = Qlearning.epsilon
-    frequency = 10
+    frequency = 2
     period = (1.0/frequency)
     
     episodes = 5000000 # Hoe vaak je de AI wilt laten runnen
@@ -39,9 +39,9 @@ def start():
             # print("Main: Executing actions")
             game_input.run(actions)
         
-        data[7] = current_data[6] # De nieuwe totalDistance_old wordt de totalDistance, zodat in de volgende tijdsstap de totalDistance_old klopt
+        data[5] = current_data[4] # De nieuwe totalDistance_old wordt de totalDistance, zodat in de volgende tijdsstap de totalDistance_old klopt
         actions_old = actions # We stellen actions_old gelijk aan actions, zodat die in de volgende tijdsstap kunnen worden gebruikt voor het bepalen van de Q-waarde van deze tijdsstap
-        state_old = current_data[:6] # We stellen state_old gelijk aan de state van nu, zodat die in de volgende tijdsstap kan worden gebruikt voor het bepalen van de Q-waarde van deze tijdsstap
+        state_old = current_data[1:4] # We stellen state_old gelijk aan de state van nu, zodat die in de volgende tijdsstap kan worden gebruikt voor het bepalen van de Q-waarde van deze tijdsstap
         
         # Als het script een exit signaal krijgt, zorgt dit ervoor dat de Q_table en de epsilon worden opgeslagen
         if not delete_progress:
@@ -50,7 +50,7 @@ def start():
             atexit.register(exit_handler, Q_table, epsilon)
     
         # Als currentLapInvalid == 1 (de lap is invalid), of als er geen snelheid is (bijvoorbeeld wanneer de auto tegen een muur aan staat), dan restarten we de lap. Dit gebeurt na de Qlearning.determine_Q functie, zodat er een straf is bepaald voor de actie die hiertoe heeft geleid
-        if current_data[8] == 1:
+        if current_data[6] == 1:
             print("Main: Lap invalid")
             restart_lap()
             lap_restarted = True
@@ -104,8 +104,8 @@ def restart_lap():
     time.sleep(0.5)
     game_input.special('A') # Press A to restart lap
     time.sleep(5.75)
-    data[7] = startDistance # De oude distance moet weer beginnen op de startDistance, zodat de rewardbepaling bij de eerste episode klopt
-    data[8] = 0 # Zet currentLapInvalid == 0, zodat de lap niet meteen nog een keer wordt gerestart
+    data[6] = 0 # Zet currentLapInvalid == 0, zodat de lap niet meteen nog een keer wordt gerestart
+    game_input.special('go_to_location')
 
 if __name__ == "__main__":
     from data_collection import run, startDistance, data
@@ -135,6 +135,7 @@ if __name__ == "__main__":
         time.sleep(0.5)
         game_input.special('A') # Press A to restart lap
         time.sleep(5.75)
+        game_input.special('go_to_location')
     start()
     print("Main: Waiting for Data Collection to end")
     process_1.join()
@@ -147,7 +148,7 @@ if __name__ == "__main__":
         total_time = float(file.read())
     total_time += running_time
     file = open("time", "w")
-    file.write(str(total_time))
+    file.write(str(round(total_time)))
     file.close()
 
     print("Main: Finished")
