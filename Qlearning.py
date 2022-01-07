@@ -1,7 +1,6 @@
 import numpy as np
 import random
 from os.path import exists
-import tkinter as tk
 
 delete_progress = False
 
@@ -25,7 +24,6 @@ else:
     file = open("epsilon", "r")
     epsilon = float(file.read())
 
-window = tk.Tk()
 
 """
 alpha is the learning rate, which determines how much newly acquired information overrides old information.
@@ -129,9 +127,6 @@ def determine_actions(Q_table, epsilon, best_row_index):
         if best_row_index:
             actions = Q_table[best_row_index, 3]
 
-            Q = Q_table[best_row_index, 4]
-            text = tk.Label(text=str(Q))
-            text.pack()
         # If there is no same row, determine actions randomly
         else:
             steering = random.randint(-1,1)
