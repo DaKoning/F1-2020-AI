@@ -4,6 +4,7 @@ def start():
     epsilon = Qlearning.epsilon
     frequency = 2
     period = (1.0/frequency)
+    current_run = 1
     
     episodes = 5000000 # Hoe vaak je de AI wilt laten runnen
     max_time = 1000000 # In seconden
@@ -52,11 +53,11 @@ def start():
         # Als currentLapInvalid == 1 (de lap is invalid), of als er geen snelheid is (bijvoorbeeld wanneer de auto tegen een muur aan staat), dan restarten we de lap. Dit gebeurt na de Qlearning.determine_Q functie, zodat er een straf is bepaald voor de actie die hiertoe heeft geleid
         if current_data[6] == 1:
             print("Main: Lap invalid")
-            restart_lap()
+            current_run = restart_lap(current_episode, current_run)
             lap_restarted = True
         elif current_data[0] == 0:
             print("Main: No speed")
-            restart_lap()
+            current_run = restart_lap(current_episode, current_run)
             lap_restarted = True
         else: # Als de lap invalid is en dus opnieuw op moet worden gestart, moet er niet gecheckt worden of de fuctie te traag is, omdat het opnieuw opstarten 6 seconden duurt
             if timeToEnd < time.time():
@@ -98,14 +99,21 @@ def activate_window():
     except gw.PyGetWindowException:
         print(f"Main: Could not focus {windowname}")
 
-def restart_lap():
+def restart_lap(current_episode, current_run):
     print("Main: Restarting lap")
+    distance = data[4]
+    file = open("distance", "a")
+    file.write(f"Run {current_run}:     distance: {distance}\n")
+    file.close()
+    current_run += 1
     game_input.special('start') # Press start to open menu
     time.sleep(0.5)
     game_input.special('A') # Press A to restart lap
     time.sleep(5.75)
     data[6] = 0 # Zet currentLapInvalid == 0, zodat de lap niet meteen nog een keer wordt gerestart
     game_input.special('go_to_location')
+
+    return current_run
 
 if __name__ == "__main__":
     from data_collection import run, startDistance, data
@@ -136,6 +144,7 @@ if __name__ == "__main__":
         game_input.special('A') # Press A to restart lap
         time.sleep(5.75)
         game_input.special('go_to_location')
+        print('Main: Go!')
     start()
     print("Main: Waiting for Data Collection to end")
     process_1.join()
