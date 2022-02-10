@@ -38,6 +38,7 @@ def special(input):
         gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB)
         gamepad.update()
     elif input == 'go_to_location':
+        gamepad.right_trigger_float(value_float=0.15)
         gamepad.left_joystick_float(x_value_float=0.0, y_value_float=0.0)
         gamepad.update()
         time.sleep(3)

@@ -51,7 +51,7 @@ def start():
             atexit.register(exit_handler, Q_table, epsilon)
     
         # Als currentLapInvalid == 1 (de lap is invalid), of als er geen snelheid is (bijvoorbeeld wanneer de auto tegen een muur aan staat), dan restarten we de lap. Dit gebeurt na de Qlearning.determine_Q functie, zodat er een straf is bepaald voor de actie die hiertoe heeft geleid
-        if current_data[6] == 1:
+        if current_data[6] == 1 or current_data[1] == 0 or current_data[2] == 0 or current_data[3] == 0:
             print("Main: Lap invalid")
             current_run = restart_lap(current_episode, current_run)
             lap_restarted = True
@@ -112,6 +112,7 @@ def restart_lap(current_episode, current_run):
     time.sleep(5.75)
     data[6] = 0 # Zet currentLapInvalid == 0, zodat de lap niet meteen nog een keer wordt gerestart
     game_input.special('go_to_location')
+    print('Main: Go!')
 
     return current_run
 

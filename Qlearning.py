@@ -32,17 +32,16 @@ epsilon is randomness factor, which determines many time a random action should 
 Q_0 is the initial condition, which can be set by the first reward (reset of initial conditions). 
 """
 
-alpha = 0.81
-gamma = 0.96
+alpha = 0.95
+gamma = 0.80
 epsilon_decay = 1 # De erpsilon decay kunnen we tweeken voor een betere performance
 Q_old = 0
-invalid_punishment = 1000 # De straf die de AI moet krijgen wanneer de lap invalid is geworden (door b.v. het aanraken van het gras)
-no_speed_punishment = 1000 # Des straf die de AI moet krijgen wanneer hij geen snelheid heeft (stilstaan midden op de track of b.v. tegen een muur
+invalid_punishment = 5000 # De straf die de AI moet krijgen wanneer de lap invalid is geworden (door b.v. het aanraken van het gras)
+no_speed_punishment = 5000 # Des straf die de AI moet krijgen wanneer hij geen snelheid heeft (stilstaan midden op de track of b.v. tegen een muur
 
 
 def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
-    speed = data[0]
-    currentLapInvalid = data[6]
+    speed, ray_front, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid = data
 
     reward = get_reward(data) # Reward bepalen
 
@@ -50,10 +49,13 @@ def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
     steering_old = actions_old
     
     # De voorspelling voor de volgende state van de last state wordt gelijk gesteld aan de state die het meest lijkt op de current state, maar alleen als de lap niet gerestart wordt, dan moet er geen hoge Q_max worden toegewezen
-    if best_row_index and speed != 0 and currentLapInvalid != 1:
+    if speed == 0 or currentLapInvalid == 1 or ray_front ==0 or ray_rightfront == 0 or ray_leftfront == 0:
+        Q_max = -1 * invalid_punishment
+    elif best_row_index:
         Q_max = Q_table[best_row_index, 4]
     else:
-        Q_max = 0.0
+        Q_max = 0
+    print(f"Q-max: {Q_max}")
 
     # Check whether the same state-action pair as the last state-action pair already exists in the Q-table
     row = list(state_old).append(actions_old)
@@ -73,17 +75,16 @@ def determine_Q(Q_table, data, state_old, actions_old, best_row_index):
         # Voeg de nieuwe row met de state, de actions en de Q-waarde toe aan de Q-table
         Q_table = np.append(Q_table, [[ray_front_old, ray_rightfront_old, ray_leftfront_old, steering_old, Q_new]], axis=0)
     
-    # print(f"Q-learning:\tReward: {format(reward, '.16f')},\tQ: {format(Q_new, '.16f')}")
+    print(f"Q-learning:\tReward: {format(reward, '.16f')},\tQ: {format(Q_new, '.16f')}")
 
     return Q_table
 
 def get_reward(data):
     # print("Q-learning: Getting reward")
-    speed = data[0]
-    totalDistance, totalDistance_old, currentLapInvalid = data[4:]
+    speed, ray_front, ray_rightfront, ray_leftfront, totalDistance, totalDistance_old, currentLapInvalid = data
 
 
-    if currentLapInvalid:
+    if currentLapInvalid or ray_front == 0 or ray_rightfront == 0 or ray_leftfront == 0:
         punishment = invalid_punishment
         reward = 0 - punishment
     elif speed == 0:
