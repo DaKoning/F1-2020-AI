@@ -26,3 +26,4 @@ TO DO:
     DONE Q formule fixen
     DONE Future state voorspelling verbeteren
     (misschien) pygame in main
+    /
